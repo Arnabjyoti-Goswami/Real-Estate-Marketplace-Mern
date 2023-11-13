@@ -1,3 +1,14 @@
-# MERNest Homes
+# MERN Estate
 
-A modern real estate marketplace website built using the MERN stack.
+A Real Estate Marketplace website built using the MERN stack.
+
+Commands:
+```
+cd client
+npm i
+npm run dev
+cd ..
+cd api
+npm i
+npm run dev
+```

@@ -10,6 +10,10 @@ mongoose.connect(mongo_admin_url).then(() => {
 
 import express from 'express';
 const app = express();
+
+import cookieParser from 'cookie-parser';
+app.use(cookieParser());
+
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 }); 
