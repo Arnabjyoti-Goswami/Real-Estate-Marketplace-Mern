@@ -1,24 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import {
-  Home,
-  About,
-  Profile,
-  SignIn,
-  SignUp,
-} from './pages/';
+import { pages, Header } from './components/Header.jsx';
 
 const App = () => {
-  const pages = [
-    { route: '/', component: Home },
-    { route: '/about', component: About },
-    { route: '/sign-in', component: SignIn },
-    { route: '/sign-up', component: SignUp },
-    { route: '/profile', component: Profile },
-  ];
-
   return (
   <BrowserRouter >
+    <Header />
     <Routes>
     {
     pages.map(item => (
