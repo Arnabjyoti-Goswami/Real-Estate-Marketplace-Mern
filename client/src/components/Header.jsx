@@ -1,43 +1,10 @@
 import { FaSearch as SearchIcon } from 'react-icons/fa';
 import { Link, NavLink } from 'react-router-dom';
-
-import {
-  Home,
-  About,
-  Profile,
-  SignIn,
-  SignUp,
-} from '../pages/';
-
-const pages = [
-  { 
-    route: '/', 
-    component: Home, 
-    label: 'Home' 
-  },
-  { 
-    route: '/about', 
-    component: About, 
-    label: 'About' 
-  },
-  { 
-    route: '/sign-in', 
-    component: SignIn, 
-    label: 'Sign In' 
-  },
-  { 
-    route: '/sign-up', 
-    component: SignUp, 
-    label: 'Sign Up' 
-  },
-  { 
-    route: '/profile', 
-    component: Profile, 
-    label: 'Profile' 
-  },
-];
+import { useSelector } from 'react-redux';
 
 const Header = () => {
+  const { currentUser } = useSelector(state => state.user);
+
   const navOptions = [
     { label: 'Home', route: '/'},
     { label: 'About', route: '/about'},
@@ -67,22 +34,33 @@ const Header = () => {
 
         <nav className='flex gap-4'>
         {
-        pages.map( (item, index) => (
-          <NavLink to={item.route}
-          key={`nav option #${index}`}
-          className={ ({isActive}) => { return `
-          text-slate-500 hover:underline
-          ${index !== navOptions.length - 1 ? 'hidden sm:inline' : ''}
-          ${isActive ? 
-            'text-bg-blue-gradient' 
-            : 
-            ''}
-          `} }
-          >
-            {item.label}
-          </ NavLink>
+        navOptions.map( (item, index) => {
+          if (index === 2 && currentUser) {
+            return (
+              <Link to='/profile'>
+                <img src={currentUser.avatar} 
+                alt='Profile'
+                className='rounded-full h-7 w-7 object-cover'
+                />
+              </Link>
+            )
+          }
+          return ( 
+            <NavLink to={item.route}
+            key={`nav option #${index}`}
+            className={ ({isActive}) => { return `
+            text-slate-500 hover:underline
+            ${index !== navOptions.length - 1 ? 'hidden sm:inline' : ''}
+            ${isActive ? 
+              'text-bg-blue-gradient' 
+              : 
+              ''}
+            `} }
+            >
+              {item.label}
+            </ NavLink>
           )
-        )
+        } )
         }
         </nav>
       </div>
@@ -90,7 +68,4 @@ const Header = () => {
   );
 }
 
-export {
-  pages,
-  Header,
-};
+export default Header;
