@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import OAuth from '../components/OAuth';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
@@ -192,6 +193,7 @@ const SignUp = () => {
         disabled:placeholder-opacity-80'>
           {loading ? 'Loading...' : 'Sign Up'}
         </button>
+        <OAuth />
       </form>
 
       <div className='flex gap-2 mt-5'>
