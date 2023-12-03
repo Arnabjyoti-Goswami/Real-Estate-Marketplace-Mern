@@ -1,7 +1,10 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
+
+import mongoose from 'mongoose';
+
 const mongo_admin_url=`mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASSWORD}@${process.env.CLUSTER}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+
 mongoose.connect(mongo_admin_url).then(() => {
   console.log('Connected to MongoDB!');
 }).catch((err) => {
@@ -21,6 +24,9 @@ app.use(express.json());
 
 import authRouter from './routes/auth.routes.js';
 app.use('/api/auth', authRouter);
+
+import userRouter from './routes/user.routes.js';
+app.use('/api/user', userRouter);
 
 // Error middleware
 app.use((err, req, res, next) => {
