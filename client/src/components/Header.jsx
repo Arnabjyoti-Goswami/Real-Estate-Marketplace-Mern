@@ -37,7 +37,7 @@ const Header = () => {
         navOptions.map( (item, index) => {
           if (index === 2 && currentUser) {
             return (
-              <Link to='/profile'>
+              <Link key='2' to='/profile'>
                 <img src={currentUser.avatar} 
                 alt='Profile'
                 className='rounded-full h-7 w-7 object-cover'
