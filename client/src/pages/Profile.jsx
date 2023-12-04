@@ -290,6 +290,36 @@ const Profile = () => {
     }
   };
 
+  const handleSignOut = async (e) => {
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/signout', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+
+      if(data.success === false)  {
+        setError(data.message);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      setError(null);
+      dispatch(deleteUserSuccess());
+      setSuccessMsg('Signed out successfully!');
+
+    } catch (error) {
+      setLoading(false);
+      setError(error.message);
+    }
+  };
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>
@@ -454,7 +484,8 @@ const Profile = () => {
         className='text-red-700 cursor-pointer'>
           Delete account
         </span>
-        <span className='text-red-700 cursor-pointer'>
+        <span onClick={handleSignOut}
+        className='text-red-700 cursor-pointer'>
           Sign out
         </span>
       </div>
