@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserSuccess } from '../redux/user/userSlice.js';
+import { updateUserSuccess, deleteUserSuccess } from '../redux/user/userSlice.js';
 
 import getFileNameWithTime from '../utils/getFileNameWithTime.js';
 
@@ -83,7 +83,7 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [updateSuccessMsg, setUpdateSuccessMsg] = useState(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -166,7 +166,8 @@ const Profile = () => {
       setLoading(false);
       setError(null);
       dispatch(updateUserSuccess(data));
-      setUpdateSuccessMsg(true);
+      setSuccessMsg('Profile updated successfully!');
+
     }
     catch (error) {
       setLoading(false);
@@ -254,6 +255,39 @@ const Profile = () => {
       return;
     }
     setFile(file);
+  };
+
+  const handleDeleteAccount = async (e) => {
+    setLoading(true);
+
+    try {
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          oldPassword: formData.oldPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if(data.success === false)  {
+        setError(data.message);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      setError(null);
+      dispatch(deleteUserSuccess());
+      setSuccessMsg('Account deleted successfully!');
+
+    } catch (error) {
+      setLoading(false);
+      setError(error.message);
+    }
   };
 
   return (
@@ -416,7 +450,8 @@ const Profile = () => {
       </form>
 
       <div className='flex justify-between mt-5 font-medium'>
-        <span className='text-red-700 cursor-pointer'>
+        <span onClick={handleDeleteAccount}
+        className='text-red-700 cursor-pointer'>
           Delete account
         </span>
         <span className='text-red-700 cursor-pointer'>
@@ -437,11 +472,11 @@ const Profile = () => {
       <TimeoutElement
       tagName='p'
       classNames='text-green-700 mt-5'
-      valueState={updateSuccessMsg}
-      valueStateValueToMatch={true}
-      setValueState={setUpdateSuccessMsg}
-      valueStateDefaultValue={false}
-      text='Profile updated successfully!'
+      valueState={successMsg}
+      valueStateMatchWhenNotEmpty={true}
+      setValueState={setSuccessMsg}
+      valueStateDefaultValue={''}
+      text={successMsg}
       />
     </div>
   );
