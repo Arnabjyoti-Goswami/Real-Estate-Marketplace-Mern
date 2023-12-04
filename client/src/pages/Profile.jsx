@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { updateUserSuccess } from '../redux/user/userSlice.js';
 
 import getFileNameWithTime from '../utils/getFileNameWithTime.js';
 
@@ -11,38 +12,35 @@ import {
   ref, 
   uploadBytesResumable 
 } from 'firebase/storage';
+
 import { app } from '../firebase.js';
 
-const FileUploadMessage = ({ percent, error, setPercent }) => {
-  const [successTimeout, setSuccessTimeout] = useState(null);
+import TimeoutElement from '../components/TimeoutElement.jsx';
 
-  const setNewSuccessTimeout = () => {
-    if (successTimeout) {
-      clearTimeout(successTimeout);
-    }
-    const timeout = setTimeout(() => {
-      setPercent(0);
-    }, 3000);
-    setSuccessTimeout(timeout);
-  };
-
-  useEffect(() => {
-    if (percent === 100) {
-      setNewSuccessTimeout();
-    }
-  }, [percent]);
-
+const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
   let message = null;
   if (typeof error === 'object' && error) {
     message = 
-    <span className='text-red-700'>
-      File must be less than 2mb and an image!
-    </span>;
+    <TimeoutElement
+    tagName='span'
+    classNames='text-red-700'
+    valueState={error}
+    setValueState={setError}
+    valueStateDefaultValue={null}
+    valueStateMatchWhenNotEmpty={true}
+    text={'File must be less than 2mb and an image!'}
+    />;
   } else if (typeof error === 'string' && error) {
     message = 
-    <span className='text-red-700'>
-      {error}
-    </span>;
+    <TimeoutElement
+    tagName='span'
+    classNames='text-red-700'
+    valueState={error}
+    setValueState={setError}
+    valueStateDefaultValue={null}
+    valueStateMatchWhenNotEmpty={true}
+    text={error}
+    />;
   } else if (percent > 0 && percent < 100) {
     message = 
     <span className='text-slate-700'>
@@ -50,9 +48,15 @@ const FileUploadMessage = ({ percent, error, setPercent }) => {
     </span>;
   } else if (percent === 100) {
     message = 
-    <span className='text-green-700'>
-      Image successfully uploaded!
-    </span>;
+    <TimeoutElement
+    tagName='span'
+    classNames='text-green-700'
+    valueState={percent}
+    valueStateValueToMatch={100}
+    setValueState={setPercent}
+    valueStateDefaultValue={0}
+    text='Image successfully uploaded!'
+    />
   }
 
   return (
@@ -63,6 +67,8 @@ const FileUploadMessage = ({ percent, error, setPercent }) => {
 };
 
 const Profile = () => {
+  const dispatch = useDispatch();
+
   const { currentUser } = useSelector(state => state.user);
 
   const [formData, setFormData] = useState({
@@ -74,9 +80,10 @@ const Profile = () => {
     avatar: currentUser.avatar,
   });
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
+  const [updateSuccessMsg, setUpdateSuccessMsg] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -86,28 +93,55 @@ const Profile = () => {
     // console.log(e.target.id, ':', e.target.value);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const checkNoChanges = () => {
+    const noPasswordChange = formData.password === formData.oldPassword && formData.confirmPassword === formData.oldPassword;
+    const noNewPassword = formData.password === '' && formData.confirmPassword === '';
+    const passwordUnchanged = noPasswordChange || noNewPassword;
+    if (formData.username === currentUser.username && formData.email === currentUser.email && formData.avatar === currentUser.avatar && passwordUnchanged) {
+      return true;
+    }
+    return false;
+  };
 
+  const passwordValidation = () => {
+    let result = true;
     const passwordRegex = /^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])|(?=.*\d)/;
     if (formData.password.length < 8 || !passwordRegex.test(formData.password)) {
       setError('Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.');
       setLoading(false);
-      setNewTimeout();
-      return;
+      result = false;
     }
 
     if(formData.confirmPassword !== formData.password) {
       setError('Passwords are not matching!');
       setLoading(false);
-      setNewTimeout();
+      result = false;
+    }
+
+    return result;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const noChanges = checkNoChanges();
+    if (noChanges) {
+      setError("Can't Update! No changes are made.");
       return;
+    }
+
+    // If the user is changing the password, then perform checks on the new password. If checks failed, then return from this handleSubmit function.
+    if (formData.password) {
+      const passwordsValidated = passwordValidation();
+      if (!passwordsValidated) {
+        return;
+      }
     }
 
     try {
       setLoading(true);
 
-      const res = await fetch('/api/auth/update', {
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method:'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,42 +159,20 @@ const Profile = () => {
       if(data.success === false)  {
         setError(data.message);
         setLoading(false);
-        setNewTimeout();
         return;
       }
       // console.log(data);
 
       setLoading(false);
       setError(null);
-      navigate('/sign-in');
-    } 
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccessMsg(true);
+    }
     catch (error) {
       setLoading(false);
       setError(error.message);
-      setNewTimeout();
     }
   };
-
-  const [errorTimeout, setErrorTimeout] = useState(null);
-
-  const setNewTimeout = () => {
-    if (errorTimeout) {
-      clearTimeout(errorTimeout);
-    }
-    setErrorTimeout(
-      setTimeout(() => {
-        setError(null);
-      }, 3000)
-    );
-  };
-
-  useEffect(() => {
-    return () => {
-      if (errorTimeout) {
-        clearTimeout(errorTimeout);
-      }
-    };
-  }, [errorTimeout]);
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [focusPassword, setFocusPassword] = useState(false);
@@ -197,25 +209,6 @@ const Profile = () => {
   const [fileUploadPercentage, setFileUploadPercentage] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(null);
 
-  const [fileUploadErrorTimeout, setFileUploadErrorTimeout] = useState(null);
-  const setNewFileUploadErrorTimeout = () => {
-    if (fileUploadErrorTimeout) {
-      clearTimeout(fileUploadErrorTimeout);
-    }
-    setFileUploadErrorTimeout(
-      setTimeout(() => {
-        setFileUploadError(null);
-      }, 3000)
-    );
-  };
-  useEffect(() => {
-    return () => {
-      if (fileUploadErrorTimeout) {
-        clearTimeout(fileUploadErrorTimeout);
-      }
-    };
-  }, [fileUploadErrorTimeout]);
-
   useEffect(() => {
     if (file) {
       handleFileUpload(file);
@@ -235,7 +228,6 @@ const Profile = () => {
       },
       (error) => {
         setFileUploadError(error);
-        setNewFileUploadErrorTimeout();
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then( (downloadURL) => {
@@ -255,12 +247,10 @@ const Profile = () => {
     // These checks are also present in the firebase storage rules, so they are not really required. But doing them here too is more efficient as it doesn't waste time fully uploading the file to the storage and then checking if it satisfies the storage's rules.
     if (file.size > 2 * 1024 * 1024) {
       setFileUploadError('File must be less than 2mb!');
-      setNewFileUploadErrorTimeout();
       return;
     }
     if (!file.type.startsWith('image/')) {
       setFileUploadError('File must be an image!');
-      setNewFileUploadErrorTimeout();
       return;
     }
     setFile(file);
@@ -289,6 +279,7 @@ const Profile = () => {
         className='rounded-full h-24 w-24 object-cover cursor-pointer mt-2 self-center' />
         <FileUploadMessage 
         error={fileUploadError}
+        setError={setFileUploadError}
         percent={fileUploadPercentage}
         setPercent={setFileUploadPercentage}
         />
@@ -370,7 +361,7 @@ const Profile = () => {
           } }
           id='password' 
           onChange={handleChange}
-          required/>
+          />
           {
           passwordVisible ? (
             <EyeOutlined onClick={() => {
@@ -402,7 +393,7 @@ const Profile = () => {
           } }
           id='confirmPassword' 
           onChange={handleChange}
-          required/>
+          />
           {
           confirmPasswordVisible ? (
             <EyeOutlined onClick={() => {
@@ -433,12 +424,25 @@ const Profile = () => {
         </span>
       </div>
 
-      {
-      error && 
-      <p className='text-red-500 mt-5'>
-        {error}
-      </p>
-      }
+      <TimeoutElement
+      tagName='p'
+      classNames='text-red-700 mt-5'
+      valueState={error}
+      setValueState={setError}
+      valueStateDefaultValue={''}
+      valueStateMatchWhenNotEmpty={true}
+      text={error}
+      />
+
+      <TimeoutElement
+      tagName='p'
+      classNames='text-green-700 mt-5'
+      valueState={updateSuccessMsg}
+      valueStateValueToMatch={true}
+      setValueState={setUpdateSuccessMsg}
+      valueStateDefaultValue={false}
+      text='Profile updated successfully!'
+      />
     </div>
   );
 };

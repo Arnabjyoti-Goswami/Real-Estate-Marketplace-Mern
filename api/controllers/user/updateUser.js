@@ -12,19 +12,24 @@ const updateUser = async (req, res, next) => {
   if (!validPassword) return next(errorHandler(401, 'Wrong password!'));
 
   try {
-    if(password) {
-      password = bcryptjs.hashSync(password, 10);
+    const updateFields = {};
+    // Only update the properties of the user that are not empty
+    if (username) {
+      updateFields.username = username;
     }
+    if (email) {
+      updateFields.email = email;
+    }
+    if (password) {
+      updateFields.password = bcryptjs.hashSync(password, 10);
+    }
+    if (avatar) {
+      updateFields.avatar = avatar;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      {
-        $set:{
-          username,
-          email,
-          password,
-          avatar,
-        }
-      },
+      { $set: updateFields },
       { new: true },
     );
 
