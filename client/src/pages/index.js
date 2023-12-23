@@ -3,6 +3,7 @@ import About from './About.jsx';
 import Profile from './Profile.jsx';
 import SignIn from './SignIn.jsx';
 import SignUp from './SignUp.jsx';
+import CreateListing from './CreateListing.jsx';
 
 export {
   Home,
@@ -10,4 +11,5 @@ export {
   Profile,
   SignIn,
   SignUp,
+  CreateListing,
 };

@@ -16,6 +16,8 @@ import { app } from '../firebase.js';
 
 import TimeoutElement from '../components/TimeoutElement.jsx';
 
+import { Link } from 'react-router-dom';
+
 const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
   let message = null;
   if (typeof error === 'object' && error) {
@@ -445,6 +447,15 @@ const Profile = () => {
         hover:opacity-95 
         disabled:placeholder-opacity-80'>
           {loading ? 'Loading...' : 'Update'}
+        </button>
+        <button type='button'
+        className='bg-green-700 p-3 rounded-lg 
+        uppercase text-center text-white
+        hover:opacity-90'
+        >
+          <Link to='/create-listing'>
+            Create Listing
+          </Link>
         </button>
       </form>
 
