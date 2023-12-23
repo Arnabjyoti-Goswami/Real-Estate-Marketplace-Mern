@@ -1,6 +1,153 @@
+import { 
+  getDownloadURL, 
+  getStorage, 
+  ref, 
+  uploadBytesResumable, 
+  deleteObject, 
+} from 'firebase/storage';
+import { app } from '../firebase';
 
+import { useState }from 'react';
+import getFileNameWithTime from '../utils/getFileNameWithTime';
 
 const CreateListing = () => {
+  const [files, setFiles] = useState([]);
+  const [formData, setFormData] = useState({
+    imageUrls: [],
+  });
+  const [fileUploadError, setFileUploadError] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    const filesArray = Array.from(files);
+
+    filesArray.forEach( (file) => {
+      if (file.size > 2 * 1024 * 1024) {
+        setFileUploadError('Each file must be less than 2mb!');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setFileUploadError('Each file must be an image!');
+        return;
+      }
+      setFiles((prevFiles) => [...prevFiles, file]);
+    } );
+  };
+
+  const handleImageSubmit = (e) => {
+    if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
+      setUploading(true);
+      setFileUploadError('');
+       
+      const promises = [];
+      for (let i = 0; i < files.length; i++) {
+        promises.push(storeImage(files[i]));
+      }
+
+      Promise.all(promises)
+        .then((urls) => {
+          setFormData({
+            ...formData,
+            imageUrls: formData.imageUrls.concat(urls),
+          });
+          setFileUploadError('');
+          setUploading(false);
+        })
+        .catch((error) => {
+          setFileUploadError(error.message);
+          setUploading(false);
+        });
+
+    } else {
+      setFileUploadError('You can only upload 6 images per listing');
+      setUploading(false);
+    }
+  };
+
+  const storeImage = async (file) => {
+    return new Promise( (resolve, reject) => {
+      const storage = getStorage(app);
+      const filename = getFileNameWithTime(file.name);
+      const storageRef = ref(storage, filename);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Uploading image ${filename} is ${progress}% done`);
+        },
+        (error) => {
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref)
+            .then((downloadURL) => {
+              resolve(downloadURL);
+            });
+        },
+      );
+    } );
+  };
+
+  console.log(formData);
+
+  const getFilePathFromFirebaseUrl = (url) => {
+    const baseUrl = 'https://firebasestorage.googleapis.com/v0/b/mern-estate-70c92.appspot.com/o/';
+    const imageSpecificUrl = url.replace(baseUrl, '');
+    const indexOfEndPath = imageSpecificUrl.indexOf('?');
+    let imagePath = imageSpecificUrl.substring(0, indexOfEndPath);
+  
+    // for spaces in the filename
+    while (imagePath.includes('%20')) {
+      imagePath = imagePath.replace('%20', ' ');
+    }
+    
+    // for the hour:minute:second in the filename end
+    while (imagePath.includes('%3A')) {
+      imagePath = imagePath.replace('%3A', ':')
+    }
+
+    // for commas in the filename
+    while (imagePath.includes('%2C')) {
+      imagePath = imagePath.replace('%2C', ',')
+    }
+
+    console.log(imagePath);
+    return imagePath;
+  };
+
+  // Add 'allow delete;' to the Firebase Storage Rules
+  const deleteFileFromFirebase = async (fileUrl) => {
+    return new Promise((resolve, reject) => {
+      const storage = getStorage(app);
+      const filename = getFilePathFromFirebaseUrl(fileUrl);
+      const fileRef = ref(storage, filename);
+      deleteObject(fileRef)
+        .then(() => {
+          resolve();
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  };
+
+  const handleRemoveImage = (url, index) => {
+    deleteFileFromFirebase(url)
+      .then(() => {
+        console.log(`File ${url} deleted successfully`);
+      })
+      .catch((error) => {
+        console.log(`Error deleting file ${url}: ${error.message}`);
+      });
+
+    setFormData({
+      ...formData,
+      imageUrls: formData.imageUrls.filter( (_, i) => i !== index ),
+    });
+  };
+
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
@@ -148,14 +295,36 @@ const CreateListing = () => {
             accept='image/*' 
             multiple
             className='p-3 border border-gray-300 rounded w-full'
+            onChange={handleFileChange}
             />
             <button className='p-3 text-green-700 border border-green-700 rounded uppercase
-            hover:shadow-lg 
+            bg-green-200 hover:bg-green-300
+            hover:shadow-lg hover:shadow-slate-300
             disabled:opacity-80'
-            type='button'>
+            type='button'
+            onClick={handleImageSubmit}>
               Upload
             </button>
           </div>
+          <p className='text-red-700 text-sm'>
+          {fileUploadError && fileUploadError} 
+          </p>
+          {
+          formData.imageUrls.length > 0 &&
+          formData.imageUrls.map( (url, index) => (
+            <div className='flex justify-between p-3 border items-center'
+            key={index}>
+              <img src={url} alt='listing iamge' 
+              className='w-40 h-40 object-cover rounded-lg'/>
+              <button type='button'
+              onClick={() => handleRemoveImage(url, index)}
+              className='p-3 text-red-700 rounded-lg uppercase 
+              hover:opacity-75'>
+                Delete
+              </button>
+            </div>
+          ) )
+          }
           <button className='p-3 bg-slate-700 text-white rounded-lg 
           uppercase hover:opacity-95 disabled:opacity-80'
           type='submit'>
