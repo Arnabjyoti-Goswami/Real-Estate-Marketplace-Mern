@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
-
+import EyeIcon from '../components/EyeIcon.jsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateUserSuccess, deleteUserSuccess } from '../redux/user/userSlice.js';
 
@@ -394,17 +393,7 @@ const Profile = () => {
           id='oldPassword' 
           onChange={handleChange}
           required/>
-          {
-          oldPasswordVisible ? (
-            <EyeOutlined onClick={() => {
-              setOldPasswordVisible(false)
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setOldPasswordVisible(true)
-            }}/>
-          )
-          }
+          <EyeIcon visible={oldPasswordVisible} setVisible={setOldPasswordVisible}/>
         </div>
         <div className={`
          ${focusPassword ? 'bg-gray-100 border-slate-700' : ''}
@@ -426,17 +415,7 @@ const Profile = () => {
           id='password' 
           onChange={handleChange}
           />
-          {
-          passwordVisible ? (
-            <EyeOutlined onClick={() => {
-              setPasswordVisible(false)
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setPasswordVisible(true)
-            }}/>
-          )
-          }
+          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
         </div>
         <div className={`
          ${focusConfirmPassword ? 'bg-gray-100 border-slate-700' : ''}
@@ -458,17 +437,7 @@ const Profile = () => {
           id='confirmPassword' 
           onChange={handleChange}
           />
-          {
-          confirmPasswordVisible ? (
-            <EyeOutlined onClick={() => {
-              setConfirmPasswordVisible(false);
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setConfirmPasswordVisible(true);
-            }}/>
-          )
-          }
+          <EyeIcon visible={confirmPasswordVisible} setVisible={setConfirmPasswordVisible}/>
         </div>
         <button disable={loading.toString()} 
         type='submit'

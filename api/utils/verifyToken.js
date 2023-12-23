@@ -14,7 +14,7 @@ const verifyToken = (req, res, next) => {
     process.env.JWT_SECRET_KEY, 
     (err, user) => {
       if (err) return next(errorHandler(403, 'Forbidden!'));
-      req.user = user;
+      req.userId = user.id;
       next();
     }
   );

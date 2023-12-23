@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import EyeIcon from '../components/EyeIcon.jsx';
 import OAuth from '../components/OAuth';
 
 const SignUp = () => {
@@ -143,17 +143,7 @@ const SignUp = () => {
           id='password' 
           onChange={handleChange}
           required/>
-          {
-          passwordVisible ? (
-            <EyeOutlined onClick={() => {
-              setPasswordVisible(false)
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setPasswordVisible(true)
-            }}/>
-          )
-          }
+          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
         </div>
         <div className={`
          ${focusConfirmPassword ? 'bg-gray-100 border-slate-700' : ''}
@@ -174,17 +164,7 @@ const SignUp = () => {
           id='confirmPassword' 
           onChange={handleChange}
           required/>
-          {
-          confirmPasswordVisible ? (
-            <EyeOutlined onClick={() => {
-              setConfirmPasswordVisible(false);
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setConfirmPasswordVisible(true);
-            }}/>
-          )
-          }
+          <EyeIcon visible={confirmPasswordVisible} setVisible={setConfirmPasswordVisible}/>
         </div>
         <button disable={loading.toString()} 
         type='submit'

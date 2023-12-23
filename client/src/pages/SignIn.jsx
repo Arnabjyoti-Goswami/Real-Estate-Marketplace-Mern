@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import EyeIcon from '../components/EyeIcon.jsx';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { 
@@ -116,20 +116,10 @@ const SignIn = () => {
           onClick={ () => {
             setFocusPassword(true);
           } }
-          id='password' 
+          id='password'
           onChange={handleChange}
           required/>
-          {
-          passwordVisible ? (
-            <EyeOutlined onClick={() => {
-              setPasswordVisible(false)
-            }}/>
-          ) : (
-            <EyeInvisibleOutlined onClick={() => {
-              setPasswordVisible(true)
-            }}/>
-          )
-          }
+          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
         </div>
         <button disable={loading.toString()} 
         type='submit'
