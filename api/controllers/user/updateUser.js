@@ -3,7 +3,7 @@ import bcryptjs from 'bcryptjs';
 import User from '../../models/user.model.js';
 
 const updateUser = async (req, res, next) => {
-  if (req.user.id !== req.params.id) return next(errorHandler(401, 'You can only update your own account!'));
+  if (req.userId !== req.params.id) return next(errorHandler(401, 'You can only update your own account!'));
 
   let { username, email, password, avatar, oldPassword } = req.body;
   if (!oldPassword) return next(errorHandler(401, 'You must provide your old password!'));

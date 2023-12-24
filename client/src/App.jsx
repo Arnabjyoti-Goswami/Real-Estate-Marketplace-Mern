@@ -9,6 +9,7 @@ import {
   SignIn,
   SignUp,
   CreateListing,
+  Listing,
 } from './pages/index.js';
 
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -50,6 +51,9 @@ const App = () => {
       </Route>
       <Route element={<PrivateRoute />}>
         <Route path='/create-listing' element={<CreateListing />} />
+      </Route>
+      <Route element={<PrivateRoute />}>
+        <Route path='/listing/:id' element={<Listing />} />
       </Route>
     </Routes>
   </BrowserRouter>
