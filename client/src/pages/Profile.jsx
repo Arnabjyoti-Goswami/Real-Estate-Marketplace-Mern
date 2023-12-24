@@ -95,6 +95,29 @@ const UserListings = () => {
 
   const [showListings, setShowListings] = useState(false);
 
+  const [deleteOrEditListingError, setDeleteOrEditListingError] = useState('');
+
+  const handleListingDelete = async (listingId) => {
+    try {
+      const res = await fetch(
+      `/api/listing/delete/${listingId}`,
+      {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+
+      if (data.success === false) {
+        setDeleteOrEditListingError(data.message);
+        return;
+      }
+
+      setUserListings((prev) => prev.filter( (listing) => listing._id !== listingId) );
+
+    } catch (error) {
+      setDeleteOrEditListingError(error.message);
+    }
+  };
+
   return (
     <>
     <button className='text-green-700 
@@ -147,7 +170,8 @@ const UserListings = () => {
                 bg-red-300 bg-opacity-60
                 hover:bg-opacity-30
                 hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-red-300
-                py-[1px] px-[4px] rounded-lg'>
+                py-[1px] px-[4px] rounded-lg'
+                onClick={() => handleListingDelete(listing._id)}>
                   Delete
                 </button>
                 <button className='text-yellow-300 uppercase
@@ -160,6 +184,13 @@ const UserListings = () => {
                 </button>
               </div>
             </div>
+            {
+            deleteOrEditListingError && (
+              <p className='text-red-700'>
+                {deleteOrEditListingError}
+              </p>
+            )
+            }
           </div>
         ) )
         }
