@@ -10,6 +10,7 @@ import {
   SignUp,
   CreateListing,
   Listing,
+  UpdateListing,
 } from './pages/index.js';
 
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -30,6 +31,10 @@ const pages = [
   { 
     route: '/sign-up', 
     component: SignUp, 
+  },
+  {
+    route: '/listing/:id',
+    component: Listing,
   },
 ];
 
@@ -53,7 +58,7 @@ const App = () => {
         <Route path='/create-listing' element={<CreateListing />} />
       </Route>
       <Route element={<PrivateRoute />}>
-        <Route path='/listing/:id' element={<Listing />} />
+        <Route path='/update-listing/:id' element={<UpdateListing />} />
       </Route>
     </Routes>
   </BrowserRouter>

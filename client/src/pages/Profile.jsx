@@ -95,7 +95,7 @@ const UserListings = () => {
 
   const [showListings, setShowListings] = useState(false);
 
-  const [deleteOrEditListingError, setDeleteOrEditListingError] = useState('');
+  const [deleteListingError, setDeleteListingError] = useState('');
 
   const handleListingDelete = async (listingId) => {
     try {
@@ -107,16 +107,17 @@ const UserListings = () => {
       const data = await res.json();
 
       if (data.success === false) {
-        setDeleteOrEditListingError(data.message);
+        setDeleteListingError(data.message);
         return;
       }
 
       setUserListings((prev) => prev.filter( (listing) => listing._id !== listingId) );
 
     } catch (error) {
-      setDeleteOrEditListingError(error.message);
+      setDeleteListingError(error.message);
     }
   };
+
 
   return (
     <>
@@ -179,15 +180,16 @@ const UserListings = () => {
                 bg-yellow-200 bg-opacity-30
                 hover:bg-opacity-10
                 hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-yellow-300/40
-                py-[1px] px-[4px] rounded-lg'>
+                py-[1px] px-[4px] rounded-lg'
+                onClick={() => navigate(`/update-listing/${listing._id}`)}>
                   Edit
                 </button>
               </div>
             </div>
             {
-            deleteOrEditListingError && (
+            deleteListingError && (
               <p className='text-red-700'>
-                {deleteOrEditListingError}
+                {deleteListingError}
               </p>
             )
             }

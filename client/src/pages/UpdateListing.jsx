@@ -6,14 +6,16 @@ import {
 } from 'firebase/storage';
 import { app } from '../firebase';
 
-import { useState }from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect }from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import getFileNameWithTime from '../utils/getFileNameWithTime';
+
 import deleteFileFromFirebase from '../utils/deleteFileFromFirebase.js';
 
-const CreateListing = () => {
+const UpdateListing = () => {
   const navigate = useNavigate();
+  const { id: idRouteParam } = useParams();
 
   const [fileUploadError, setFileUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -81,13 +83,16 @@ const CreateListing = () => {
       setLoading(true);
       setError('');
 
-      const res = await fetch(`/api/listing/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `/api/listing/update/${idRouteParam}`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await res.json();
 
@@ -104,6 +109,30 @@ const CreateListing = () => {
       setError(error.message);
     }
   };
+
+  const fetchListingData = async () => {
+    try {
+      setError('');
+
+      const res = await fetch(`/api/listing/get/${idRouteParam}`);
+      const data = await res.json();
+
+      if (data.success === false) {
+        setError(data.message);
+        return;
+      }
+
+      setError('');
+      setFormData(data);
+
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchListingData();
+  }, []);
 
   const handleFileChange = (e) => {
     const files = e.target.files;
@@ -195,7 +224,7 @@ const CreateListing = () => {
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
-        Create Listing
+        Update Listing
       </h1>
       <form onSubmit={handleSubmit}
       className='flex flex-col sm:flex-row gap-4'>
@@ -386,9 +415,13 @@ const CreateListing = () => {
               Upload
             </button>
           </div>
+          {
+          fileUploadError && (
           <p className='text-red-700 text-sm'>
-          {fileUploadError && fileUploadError} 
+            {fileUploadError}
           </p>
+          )
+          }
           {
           formData.imageUrls.length > 0 &&
           formData.imageUrls.map( (url, index) => (
@@ -409,15 +442,17 @@ const CreateListing = () => {
           className='p-3 bg-slate-700 text-white rounded-lg 
           uppercase hover:opacity-95 disabled:opacity-80'
           type='submit'>
-            {loading ? 'Creating...' : 'Create Listing'}
+            {loading ? 'Updating...' : 'Update Listing'}
           </button>
-          {error && <p className='text-red-700 text-sm'>
+          {
+          error && <p className='text-red-700 text-sm'>
             {error}
-          </p>}
+          </p>
+          }
         </div>
       </form>
     </main>
   );
 };
 
-export default CreateListing;
+export default UpdateListing;
