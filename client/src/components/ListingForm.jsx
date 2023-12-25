@@ -210,7 +210,7 @@ const ListingForm = ({ type='create', idRouteParam=null }) => {
         'state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setFileUploadProgressText(`Uploading image (${filename}): ${progress}% done`);
+          setFileUploadProgressText(`Uploading image (${filename}): ${progress.toFixed(2)}% done`);
         },
         (error) => {
           reject(error);
@@ -378,9 +378,13 @@ const ListingForm = ({ type='create', idRouteParam=null }) => {
                 <p>
                   Regular Price
                 </p>
+                {
+                (formData.type === 'rent') && (
                 <span className='text-xs'>
                   ($ / month)
                 </span>
+                )
+                }
               </div>
             </div>
             {
@@ -400,9 +404,13 @@ const ListingForm = ({ type='create', idRouteParam=null }) => {
                 <p>
                   Discounted Price
                 </p>
+                {
+                (formData.type === 'rent') && (
                 <span className='text-xs'>
                   ($ / month)
                 </span>
+                )
+                }
               </div>
             </div>
             )

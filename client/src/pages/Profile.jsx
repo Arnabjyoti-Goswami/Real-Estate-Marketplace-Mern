@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import EyeIcon from '../components/EyeIcon.jsx';
+import { Link, useNavigate } from 'react-router-dom';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { updateUserSuccess, deleteUserSuccess } from '../redux/user/userSlice.js';
-
-import getFileNameWithTime from '../utils/getFileNameWithTime.js';
 
 import { 
   getDownloadURL, 
@@ -11,12 +10,12 @@ import {
   ref, 
   uploadBytesResumable 
 } from 'firebase/storage';
-
 import { app } from '../firebase.js';
 
 import TimeoutElement from '../components/TimeoutElement.jsx';
-
-import { Link, useNavigate } from 'react-router-dom';
+import getFileNameWithTime from '../utils/getFileNameWithTime.js';
+import EyeIcon from '../components/EyeIcon.jsx';
+import ForgotPassword from '../components/ForgotPassword.jsx';
 
 const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
   let message = null;
@@ -462,7 +461,8 @@ const Profile = () => {
         Profile
       </h1>
 
-      <form className='flex flex-col gap-4' 
+      <form className='flex flex-col gap-4
+      mb-2' 
       onSubmit={handleSubmit}>
         <input accept='image/*'
         type='file' 
@@ -593,8 +593,10 @@ const Profile = () => {
           </Link>
         </button>
       </form>
-
-      <div className='flex justify-between mt-5 font-medium'>
+      
+      <ForgotPassword />
+      
+      <div className='flex justify-between mt-3 font-medium'>
         <span onClick={handleDeleteAccount}
         className='text-red-700 cursor-pointer'>
           Delete account

@@ -11,6 +11,7 @@ import {
   CreateListing,
   Listing,
   UpdateListing,
+  ForgotPassword,
 } from './pages/index.js';
 
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -35,6 +36,10 @@ const pages = [
   {
     route: '/listing/:id',
     component: Listing,
+  },
+  {
+    route: '/forgot-password',
+    component: ForgotPassword,
   },
 ];
 

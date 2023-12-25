@@ -1,0 +1,4 @@
+node_modules
+
+# Project code (in Nextjs) for the live preview of email templates during development, built by npm run dev command:
+.react-email
