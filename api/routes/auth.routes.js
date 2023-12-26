@@ -4,6 +4,7 @@ import signin from '../controllers/auth/signin.js';
 import googleSignin from '../controllers/auth/googleSignin.js';
 import signout from '../controllers/auth/signout.js';
 import forgotPassword from '../controllers/auth/forgotPassword.js';
+import resetPassword from '../controllers/auth/resetPassword.js';
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.post('/signin', signin);
 router.post('/google', googleSignin);
 router.get('/signout', signout);
 router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 export default router;

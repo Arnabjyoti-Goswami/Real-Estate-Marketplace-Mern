@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';;
 import EyeIcon from '../components/EyeIcon.jsx';
-import OAuth from '../components/OAuth';
 
-const SignUp = () => {
+const ResetPassword = () => {
+  const [token, setToken] = useState('');
+
+  const getQueryParam = (param) =>  {
+    const queryParams = new URLSearchParams(window.location.search);
+    return queryParams.get(param);
+  }
+
+  useEffect(() => {
+    const rawUrlToken = getQueryParam('token');
+    const token = decodeURIComponent(rawUrlToken);
+    setToken(token);
+  }, []);
+
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [errorTimeout, setErrorTimeout] = useState(null);
+  const [error, setError] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [focusField, setFocusField] = useState('');
@@ -19,109 +30,52 @@ const SignUp = () => {
       ...formData,
       [e.target.id]: e.target.value,
     });
-    // console.log(e.target.id, ':', e.target.value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const passwordRegex = /^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])|(?=.*\d)/;
-    if (formData.password.length < 8 || !passwordRegex.test(formData.password)) {
-      setError('Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.');
-      setLoading(false);
-      setNewTimeout();
-      return;
-    }
-
-    if(formData.confirmPassword !== formData.password) {
-      setError('Passwords are not matching!');
-      setLoading(false);
-      setNewTimeout();
-      return;
-    }
-
     try {
-      setLoading(true);
+      setError('');
+      setLoading(false);
 
-      const res = await fetch('/api/auth/signup', {
-        method:'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const res = await fetch(
+        '/api/auth/reset-password',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            newPassword: formData.password,
+            token: token,
+          }),
+        }
+      );
 
       const data = await res.json();
-      if(data.success === false)  {
+
+      if(data.success === false) {
         setError(data.message);
         setLoading(false);
-        setNewTimeout();
         return;
       }
-      // console.log(data);
 
-      setLoading(false);
-      setError(null);
       navigate('/sign-in');
-    } 
-    catch (error) {
-      setLoading(false);
+
+    } catch (error) {
       setError(error.message);
-      setNewTimeout();
+      setLoading(false);
     }
   };
-
-  const setNewTimeout = () => {
-    if (errorTimeout) {
-      clearTimeout(errorTimeout);
-    }
-    setErrorTimeout(
-      setTimeout(() => {
-        setError(null);
-      }, 3000)
-    );
-  };
-
-  useEffect(() => {
-    return () => {
-      if (errorTimeout) {
-        clearTimeout(errorTimeout);
-      }
-    };
-  }, [errorTimeout]);
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>
-        Sign Up
+        Reset Password
       </h1>
       <form className='flex flex-col gap-4' 
       onSubmit={handleSubmit}>
-        <input type='text' 
-        placeholder='username' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='username' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusField('');
-        } }/>
-        <input type='email' 
-        placeholder='email' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='email' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusPassword(false);
-          setFocusConfirmPassword(false);
-        } }/>
         <div className={`
          ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
          flex items-center border p-3 rounded-lg
@@ -137,7 +91,7 @@ const SignUp = () => {
           onClick={ () => {
             setFocusField('password');
           } }
-          id='password' 
+          id='password'
           onChange={handleChange}
           required/>
           <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
@@ -157,7 +111,7 @@ const SignUp = () => {
           onClick={ () => {
             setFocusField('confirmPassword');
           } }
-          id='confirmPassword' 
+          id='confirmPassword'
           onChange={handleChange}
           required/>
           <EyeIcon visible={confirmPasswordVisible} setVisible={setConfirmPasswordVisible}/>
@@ -167,13 +121,12 @@ const SignUp = () => {
         className='bg-slate-700 text-white p-3 rounded-lg uppercase 
         hover:opacity-95 
         disabled:placeholder-opacity-80'>
-          {loading ? 'Loading...' : 'Sign Up'}
+          {loading ? 'Loading...' : 'Reset Password'}
         </button>
-        <OAuth />
       </form>
 
       <div className='flex gap-2 mt-5'>
-        <p>Have an account?</p>
+        <p>Go back to</p>
         <Link to='/sign-in'>
           <span className='text-blue'>
             Sign In
@@ -189,6 +142,6 @@ const SignUp = () => {
       }
     </div>
   );
-}
+};
 
-export default SignUp;
+export default ResetPassword;

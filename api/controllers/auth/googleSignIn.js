@@ -4,7 +4,7 @@ import bcryptjs from 'bcryptjs';
 
 import dotenv from 'dotenv';
 dotenv.config({
-  path: '../..',
+  path: '../../.env',
 });
 
 const googleSignin = async (req, res, next) => {
@@ -35,7 +35,9 @@ const googleSignin = async (req, res, next) => {
     } else {
       // Generate 16 character password with numbers from 0-9 and characters from a-z
       const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      
+      const { NUM_SALT: saltRounds } = process.env;
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, Number(saltRounds));
 
       const newUser = new User({
         username,

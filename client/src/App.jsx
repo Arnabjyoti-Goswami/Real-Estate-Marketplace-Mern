@@ -11,7 +11,7 @@ import {
   CreateListing,
   Listing,
   UpdateListing,
-  ForgotPassword,
+  ResetPassword,
 } from './pages/index.js';
 
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -38,8 +38,8 @@ const pages = [
     component: Listing,
   },
   {
-    route: '/forgot-password',
-    component: ForgotPassword,
+    route: '/reset-password',
+    component: ResetPassword,
   },
 ];
 

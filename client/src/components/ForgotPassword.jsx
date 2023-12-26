@@ -4,6 +4,9 @@ import TimeoutElement from './TimeoutElement.jsx';
 
 const ForgotPassword = ({ emailId }) => {
   const [showSendEmailOption, setShowSendEmailOption] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const timeoutRef = useRef(null);
 
   const handleClick = () => {
@@ -24,6 +27,16 @@ const ForgotPassword = ({ emailId }) => {
 
   const handleApiCall = async () => {
     try {
+      setError('');
+      setShowSendEmailOption(false);
+      setLoading(true);
+
+      if (!emailId) {
+        setError('You must provide your email id!');
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch(
         '/api/auth/forgot-password',
         {
@@ -33,7 +46,6 @@ const ForgotPassword = ({ emailId }) => {
           },
           body: JSON.stringify({
             emailId,
-            emailHtml,
           }),
         },
       );
@@ -41,10 +53,17 @@ const ForgotPassword = ({ emailId }) => {
 
       if (data.success === false) {
         setError(data.message);
+        setLoading(false);
+        return;
       }
+
+      setError('');
+      setLoading(false);
+      setSuccessMsg('Email sent successfully! Check your inbox.');
 
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -60,14 +79,22 @@ const ForgotPassword = ({ emailId }) => {
       Forgot Password?
     </button>
     {showSendEmailOption && (
-    <Link to='/forgot-password'>
       <span className='text-slate-600
       hover:underline hover:text-blue cursor-pointer'
       onClick={handleApiCall}>
         Receive an email with a link to reset your password.
       </span>
-    </Link>
-    )} 
+    )}
+    {successMsg && (
+      <span className='text-green-600'>
+        {successMsg}
+      </span>
+    )}
+    {loading && (
+      <span className='text-slate-700'>
+        Sending email...
+      </span>
+    )}
     <TimeoutElement 
     tagName='span'
     classNames='text-red-600'

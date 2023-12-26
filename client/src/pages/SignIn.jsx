@@ -12,11 +12,13 @@ import OAuth from '../components/OAuth.jsx';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({});
+  const [errorTimeout, setErrorTimeout] = useState(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [focusField, setFocusField] = useState('');
 
   const { loading, error } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
 
   const handleChange = (e) => {
@@ -50,18 +52,15 @@ const SignIn = () => {
         setNewTimeout();
         return;
       }
-      // console.log(data);
 
       dispatch(signInSuccess(data));
       navigate('/');
-    } 
+    }
     catch (error) {
       dispatch(signInFailure(error.message));
       setNewTimeout();
     }
   };
-
-  const [errorTimeout, setErrorTimeout] = useState(null);
 
   const setNewTimeout = () => {
     if (errorTimeout) {
@@ -69,7 +68,7 @@ const SignIn = () => {
     }
     setErrorTimeout(
       setTimeout(() => {
-        setError(null);
+        dispatch(signInFailure(''));
       }, 3000)
     );
   };
@@ -82,8 +81,6 @@ const SignIn = () => {
     };
   }, [errorTimeout]);
 
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [focusPassword, setFocusPassword] = useState(false);
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>
@@ -99,10 +96,10 @@ const SignIn = () => {
         onChange={handleChange}
         required
         onClick={ () => {
-          setFocusPassword(false);
+          setFocusField('');
         } }/>
         <div className={`
-         ${focusPassword ? 'bg-gray-100 border-slate-700' : ''}
+         ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
          flex items-center border p-3 rounded-lg
          `}>
           <input
@@ -111,10 +108,10 @@ const SignIn = () => {
           className={`
           w-full
           focus:outline-none mr-[2px]
-          ${focusPassword ? 'bg-gray-100' : ''}
+          ${(focusField === 'password') ? 'bg-gray-100' : ''}
           `}
           onClick={ () => {
-            setFocusPassword(true);
+            setFocusField('password');
           } }
           id='password'
           onChange={handleChange}

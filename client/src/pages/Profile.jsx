@@ -311,14 +311,10 @@ const Profile = () => {
     }
   };
 
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [focusPassword, setFocusPassword] = useState(false);
-
-  const [focusConfirmPassword, setFocusConfirmPassword] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-
   const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
-  const [focusOldPassword, setFocusOldPassword] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [focusField, setFocusField] = useState('');
 
   // Firebase storage rules:
   /*
@@ -492,9 +488,7 @@ const Profile = () => {
         onChange={handleChange}
         required
         onClick={ () => {
-          setFocusOldPassword(false);
-          setFocusPassword(false);
-          setFocusConfirmPassword(false);
+          setFocusField('');
         } }/>
         <input type='email'
         value={formData.email}
@@ -505,13 +499,11 @@ const Profile = () => {
         onChange={handleChange}
         required
         onClick={ () => {
-          setFocusOldPassword(false);
-          setFocusPassword(false);
-          setFocusConfirmPassword(false);
+          setFocusField('');
         } }/>
         
         <div className={`
-         ${focusOldPassword ? 'bg-gray-100 border-slate-700' : ''}
+         ${(focusField === 'oldPassword') ? 'bg-gray-100 border-slate-700' : ''}
          flex items-center border p-3 rounded-lg
          `}>
           <input
@@ -520,12 +512,10 @@ const Profile = () => {
           className={`
           w-full
           focus:outline-none mr-[2px]
-          ${focusOldPassword ? 'bg-gray-100' : ''}
+          ${(focusField === 'oldPassword') ? 'bg-gray-100' : ''}
           `}
           onClick={ () => {
-            setFocusOldPassword(true);
-            setFocusPassword(false);
-            setFocusConfirmPassword(false);
+            setFocusField('oldPassword');
           } }
           id='oldPassword' 
           onChange={handleChange}
@@ -533,7 +523,7 @@ const Profile = () => {
           <EyeIcon visible={oldPasswordVisible} setVisible={setOldPasswordVisible}/>
         </div>
         <div className={`
-         ${focusPassword ? 'bg-gray-100 border-slate-700' : ''}
+         ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
          flex items-center border p-3 rounded-lg
          `}>
           <input
@@ -542,12 +532,10 @@ const Profile = () => {
           className={`
           w-full
           focus:outline-none mr-[2px]
-          ${focusPassword ? 'bg-gray-100' : ''}
+          ${(focusField === 'password') ? 'bg-gray-100' : ''}
           `}
           onClick={ () => {
-            setFocusOldPassword(false);
-            setFocusPassword(true);
-            setFocusConfirmPassword(false);
+            setFocusField('password');
           } }
           id='password' 
           onChange={handleChange}
@@ -555,7 +543,7 @@ const Profile = () => {
           <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
         </div>
         <div className={`
-         ${focusConfirmPassword ? 'bg-gray-100 border-slate-700' : ''}
+         ${(focusField === 'confirmPassword') ? 'bg-gray-100 border-slate-700' : ''}
          flex items-center border p-3 rounded-lg
          `}>
           <input
@@ -564,12 +552,10 @@ const Profile = () => {
           className={`
           w-full
           focus:outline-none mr-[2px]
-          ${focusConfirmPassword ? 'bg-gray-100' : ''}
+          ${(focusField === 'confirmPassword') ? 'bg-gray-100' : ''}
           `}
           onClick={ () => {
-            setFocusOldPassword(false);
-            setFocusPassword(false);
-            setFocusConfirmPassword(true);
+            setFocusField('confirmPassword');
           } }
           id='confirmPassword' 
           onChange={handleChange}
@@ -594,7 +580,7 @@ const Profile = () => {
         </button>
       </form>
       
-      <ForgotPassword />
+      <ForgotPassword emailId={formData.email} />
       
       <div className='flex justify-between mt-3 font-medium'>
         <span onClick={handleDeleteAccount}
