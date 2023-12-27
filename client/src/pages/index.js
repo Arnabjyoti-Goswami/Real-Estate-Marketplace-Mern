@@ -7,6 +7,7 @@ import CreateListing from './CreateListing.jsx';
 import Listing from './Listing.jsx';
 import UpdateListing from './UpdateListing.jsx';
 import ResetPassword from './ResetPassword.jsx';
+import SearchListing from './SearchListing.jsx';
 
 export {
   Home,
@@ -18,4 +19,5 @@ export {
   Listing,
   UpdateListing,
   ResetPassword,
+  SearchListing,
 };

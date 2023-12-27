@@ -12,6 +12,7 @@ import {
   Listing,
   UpdateListing,
   ResetPassword,
+  SearchListing,
 } from './pages/index.js';
 
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -41,6 +42,10 @@ const pages = [
     route: '/reset-password',
     component: ResetPassword,
   },
+  {
+    route: '/search',
+    component: SearchListing,
+  }
 ];
 
 const App = () => {
