@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ListingCard from '../components/ListingCard.jsx';
 
 const SearchListing = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const SearchListing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [listings, setListings] = useState([]);
+  const [showMore, setShowMore] = useState(false);
 
   const handleChange = (e) => {
     if (e.target.id === 'searchTerm') {
@@ -89,16 +91,25 @@ const SearchListing = () => {
     try {
       setLoading(true);
       setError('');
+      setShowMore(false);
+
       const urlParams = new URLSearchParams(location.search);
       const searchQuery = urlParams.toString();
 
       const res = await fetch(`/api/listing/get?${searchQuery}`);
       const data = await res.json();
 
+      
       if (data.success === false) {
         setError(data.message);
         setLoading(false);
         return;
+      }
+
+      if (data.length === 9) {
+        setShowMore(true);
+      } else {
+        setShowMore(false);
       }
 
       setListings(data);
@@ -114,6 +125,36 @@ const SearchListing = () => {
   useEffect(() => {
     getSearchQueriesFromUrl();
   }, [location.search]);
+
+  console.log(listings.length);
+
+  const showMoreFunc = async (e) => {
+    try {
+      const startIndex = listings.length;
+      const urlParams = new URLSearchParams(location.search);
+      urlParams.set('startIndex', startIndex);
+      const searchQuery = urlParams.toString();
+
+      const res = await fetch(`/api/listing/get?${searchQuery}`);
+      const data = await res.json();
+
+      if (data.success === false) {
+        setError(data.message);
+        return;
+      }
+
+      if (data.length === 9) {
+        setShowMore(true);
+      } else {
+        setShowMore(false);
+      }
+
+      setListings([...listings, ...data]);
+
+    } catch (error) {
+      setError(error.message);
+    }
+  };
 
   return (
     <div className='flex flex-col 
@@ -238,10 +279,34 @@ const SearchListing = () => {
           </button>
         </form>
       </div>
-      <div>
+      <div className='flex-1'>
         <h1 className='text-3xl font-semibold border-b p-3 text-slate-700 mt-5'>
-          Listing Results
+          Listing Results:
         </h1>
+        <div className='p-7 flex flex-wrap gap-4'>
+          {(!loading && (listings.length === 0)) && (
+            <p className='text-xl text-slate-700'>
+              No Listing found!
+            </p>
+          )}
+          {loading && (
+            <p className='text-xl text-slate-700 text-center w-full'>
+              Loading...
+            </p>
+          )}
+          {(!loading && listings) && (
+            listings.map((listing) => (
+              <ListingCard key={listing._id} 
+              listing={listing} />
+            ))
+          )}
+          {showMore && (
+            <button onClick={showMoreFunc}
+            className='text-green-700 hover:underline p-7 text-center w-full'>
+              Show More
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

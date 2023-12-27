@@ -1,25 +1,35 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const UserListings = () => {
   const { currentUser } = useSelector(state => state.user);
-
+  const [showListings, setShowListings] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [deleteListingError, setDeleteListingError] = useState('');
   const [showListingsError, setShowListingsError] = useState('');
   const [userListings, setUserListings] = useState([]);
 
   const handleShowListing = async () => {
     try {
       setShowListingsError('');
+      setLoading(false);
+
       const res = await fetch(`api/user/listings/${currentUser._id}`);
       const data = await res.json();
+
       if (data.success === false) {
         setShowListingsError(data.message);
+        setLoading(false);
         return;
       }
+
       setUserListings(data);
+      setLoading(false);
+
     } catch (error) {
       setShowListingsError(error.message);
+      setLoading(false);
     }
   };
 
@@ -27,10 +37,6 @@ const UserListings = () => {
   const navigateToListing = (id) => {
     navigate(`/listing/${id}`);
   };
-
-  const [showListings, setShowListings] = useState(false);
-
-  const [deleteListingError, setDeleteListingError] = useState('');
 
   const handleListingDelete = async (listingId) => {
     try {
@@ -72,14 +78,22 @@ const UserListings = () => {
         {showListingsError}
       </p>
     )}
-    {
-    (showListings && userListings && userListings.length > 0) &&(
+    {(showListings && !loading && (userListings.length === 0)) && (
+      <p className='text-center text-slate-700 mb-2'>
+        You have no listings!
+        Create a listing {' '}
+        <Link to='/create-listing'
+        className='text-blue font-medium hover:underline'>
+          here
+        </Link>
+      </p>
+    )}
+    {(showListings && userListings && (userListings.length > 0)) && (
       <div className='flex flex-col gap-4'>
         <h1 className='text-center mt-7 text-2xl font-semibold'>
           Your Listings
         </h1>
-        {
-        userListings.map( (listing, index) => (
+        {userListings.map( (listing, index) => (
           <div key={index}
           className='border rounded-xl p-2'>
             <p className='text-slate-700 text-center border-b-2 border-slate-300 mb-1'>
@@ -120,19 +134,16 @@ const UserListings = () => {
                 </button>
               </div>
             </div>
-            {
-            deleteListingError && (
+            {deleteListingError && (
               <p className='text-red-700'>
                 {deleteListingError}
               </p>
-            )
-            }
+            )}
           </div>
         ) )
         }
       </div>
-    )
-    }
+    )}
     </>
   );
 };

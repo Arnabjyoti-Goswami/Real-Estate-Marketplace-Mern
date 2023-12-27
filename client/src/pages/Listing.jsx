@@ -82,26 +82,20 @@ const Listing = () => {
 
   return (
     <main>
-    {
-    isLoading && (
+    {isLoading && (
     <p className='text-center my-7 text-2xl'>
       Loading...
     </p> 
-    )
-    }
-    {
-    error && (
+    )}
+    {error && (
     <p className='text-center my-7 text-2xl'>
       {error}
     </p>
-    )
-    }
-    {
-    (objectExists(listingData) && !error && !isLoading) && (
+    )}
+    {(objectExists(listingData) && !error && !isLoading) && (
     <div>
       <Swiper navigation ref={swiperRef}>
-      {
-      listingData.imageUrls.map( (imageUrl, index) => (
+      {listingData.imageUrls.map( (imageUrl, index) => (
       <SwiperSlide key={index}>
         <div className='h-[550px]'
         style={{ 
@@ -132,7 +126,7 @@ const Listing = () => {
           </p>
           {listingData.offer && (
             <p className='bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md'>
-              ${+listingData.regularPrice - +listingData.discountPrice} off
+              ${+listingData.regularPrice - +listingData.discountPrice} OFF
             </p>
           )}
         </div>
@@ -169,8 +163,7 @@ const Listing = () => {
         <ContactLandlord listing={listingData} />
       </div>
     </div>
-    )
-    }
+    )}
     </main>
   );
 };
