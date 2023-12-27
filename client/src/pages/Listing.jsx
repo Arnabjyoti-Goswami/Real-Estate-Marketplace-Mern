@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SwiperCore from 'swiper';
@@ -10,12 +11,12 @@ import {
   FaBath,
   FaBed,
   FaChair,
-  FaMapMarkedAlt,
   FaMapMarkerAlt,
   FaParking,
 } from 'react-icons/fa';
 
 import CopyLink from '../components/CopyLink.jsx';
+import ContactLandlord from '../components/ContactLandlord.jsx';
 
 const Listing = () => {
   SwiperCore.use([Navigation]);
@@ -42,7 +43,6 @@ const Listing = () => {
       setListingData(data);
       setError('');
       setIsLoading(false);
-      console.log(listingData);
 
     } catch (error) {
       setError(error.message);
@@ -166,6 +166,7 @@ const Listing = () => {
             {listingData.furnished ? 'Furnished' : 'Unfurnished'}
           </li>
         </ul>
+        <ContactLandlord listing={listingData} />
       </div>
     </div>
     )

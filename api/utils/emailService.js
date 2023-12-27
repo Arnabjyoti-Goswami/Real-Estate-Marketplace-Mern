@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 /*
-1. Make new project in https://console.cloud.google.com/
+1. Make new project in https://console.cloud.google.com/ with the email id that you want to use for sending emails
 2. Navigate to the new project
 3. Go to the APIs and Services section
 4. Go to the credentials section in the sidebar
