@@ -23,10 +23,10 @@ const Header = () => {
 
   const handleChange = (e) => {
     setSearchTerm(e.target.value);
-  }
+  };
 
-  const updateUrl = (searchTerm) => {
-    const urlParams = new URLSearchParams(window.location.search);
+  const updateUrl = () => {
+    const urlParams = new URLSearchParams(location.search);
     urlParams.set('searchTerm', searchTerm);
     const searchQuery = urlParams.toString();
 
@@ -35,8 +35,8 @@ const Header = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateUrl(searchTerm);
-  }
+    updateUrl();
+  };
 
   const getSearchTermFromUrl = () => {
     const urlParams = new URLSearchParams(location.search);
