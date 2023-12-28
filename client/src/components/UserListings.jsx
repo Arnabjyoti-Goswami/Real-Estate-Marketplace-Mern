@@ -83,7 +83,7 @@ const UserListings = () => {
         You have no listings!
         Create a listing {' '}
         <Link to='/create-listing'
-        className='text-blue font-medium hover:underline'>
+        className='text-Blue font-medium hover:underline'>
           here
         </Link>
       </p>

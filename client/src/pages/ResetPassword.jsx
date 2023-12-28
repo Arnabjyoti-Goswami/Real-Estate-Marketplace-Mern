@@ -128,7 +128,7 @@ const ResetPassword = () => {
       <div className='flex gap-2 mt-5'>
         <p>Go back to</p>
         <Link to='/sign-in'>
-          <span className='text-blue'>
+          <span className='text-Blue'>
             Sign In
           </span>
         </Link>

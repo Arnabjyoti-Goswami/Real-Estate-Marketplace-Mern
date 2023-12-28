@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .text-bg-blue-gradient {
-  @apply bg-gradient-to-r from-darkBlue to-blue text-transparent bg-clip-text;
+  @apply bg-gradient-to-r from-darkBlue to-Blue text-transparent bg-clip-text;
 }
 
 /* Remove arrows from input elements */

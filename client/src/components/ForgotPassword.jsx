@@ -73,14 +73,14 @@ const ForgotPassword = ({ emailId }) => {
     <button 
     className='text-slate-700
     hover:underline cursor-pointer
-    hover:text-blue'
+    hover:text-Blue'
     onClick={handleClick}
     >
       Forgot Password?
     </button>
     {showSendEmailOption && (
       <span className='text-slate-600
-      hover:underline hover:text-blue cursor-pointer'
+      hover:underline hover:text-Blue cursor-pointer'
       onClick={handleApiCall}>
         Receive an email with a link to reset your password.
       </span>
