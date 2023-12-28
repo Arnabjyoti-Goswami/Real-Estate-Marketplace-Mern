@@ -13,7 +13,7 @@ const UserListings = () => {
   const handleShowListing = async () => {
     try {
       setShowListingsError('');
-      setLoading(false);
+      setLoading(true);
 
       const res = await fetch(`api/user/listings/${currentUser._id}`);
       const data = await res.json();
@@ -74,11 +74,11 @@ const UserListings = () => {
       {showListings ? 'Hide Listings' : 'Show Listings'}
     </button>
     {showListingsError && (
-      <p className='text-red-700 mb-2'>
+      <p className='text-center text-red-700 mb-2'>
         {showListingsError}
       </p>
     )}
-    {(showListings && !loading && (userListings.length === 0)) && (
+    {(showListings && !showListingsError && !loading && (userListings.length === 0)) && (
       <p className='text-center text-slate-700 mb-2'>
         You have no listings!
         Create a listing {' '}

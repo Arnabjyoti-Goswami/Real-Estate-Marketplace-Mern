@@ -14,7 +14,7 @@ import { app } from '../firebase.js';
 
 import TimeoutElement from '../components/TimeoutElement.jsx';
 import getFileNameWithTime from '../utils/getFileNameWithTime.js';
-import EyeIcon from '../components/EyeIcon.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import ForgotPassword from '../components/ForgotPassword.jsx';
 import UserListings from '../components/userListings.jsx';
 
@@ -366,67 +366,27 @@ const Profile = () => {
         onClick={ () => {
           setFocusField('');
         } }/>
-        
-        <div className={`
-         ${(focusField === 'oldPassword') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!oldPasswordVisible ? 'password' : 'text'}
-          placeholder='old password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'oldPassword') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('oldPassword');
-          } }
-          id='oldPassword' 
-          onChange={handleChange}
-          required/>
-          <EyeIcon visible={oldPasswordVisible} setVisible={setOldPasswordVisible}/>
-        </div>
-        <div className={`
-         ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!passwordVisible ? 'password' : 'text'}  
-          placeholder='new password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'password') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('password');
-          } }
-          id='password' 
-          onChange={handleChange}
-          />
-          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
-        </div>
-        <div className={`
-         ${(focusField === 'confirmPassword') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!confirmPasswordVisible ? 'password' : 'text'}  
-          placeholder='confirm new password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'confirmPassword') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('confirmPassword');
-          } }
-          id='confirmPassword' 
-          onChange={handleChange}
-          />
-          <EyeIcon visible={confirmPasswordVisible} setVisible={setConfirmPasswordVisible}/>
-        </div>
+        <PasswordInput
+        id='oldPassword'
+        placeholder='old password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
+        <PasswordInput
+        id='password'
+        placeholder='new password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
+        <PasswordInput
+        id='confirmPassword'
+        placeholder='confirm new password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
         <button disable={loading.toString()} 
         type='submit'
         className='bg-slate-700 text-white p-3 rounded-lg uppercase 

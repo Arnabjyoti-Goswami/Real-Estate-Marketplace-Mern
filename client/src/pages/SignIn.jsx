@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import EyeIcon from '../components/EyeIcon.jsx';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { 
@@ -11,11 +10,11 @@ import {
 import OAuth from '../components/OAuth.jsx';
 
 import ForgotPassword from '../components/ForgotPassword.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({});
   const [errorTimeout, setErrorTimeout] = useState(null);
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [focusField, setFocusField] = useState('');
 
   const { loading, error } = useSelector((state) => state.user);
@@ -100,26 +99,13 @@ const SignIn = () => {
         onClick={ () => {
           setFocusField('');
         } }/>
-        <div className={`
-         ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!passwordVisible ? 'password' : 'text'}  
-          placeholder='password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'password') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('password');
-          } }
-          id='password'
-          onChange={handleChange}
-          required/>
-          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
-        </div>
+        <PasswordInput 
+        id='password'
+        placeholder='password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
         <button disable={loading.toString()} 
         type='submit'
         className='bg-slate-700 text-white p-3 rounded-lg uppercase 
@@ -140,12 +126,11 @@ const SignIn = () => {
         </Link>
       </div>
 
-      {
-      error && 
+      {error && (
       <p className='text-red-500 mt-5'>
         {error}
       </p>
-      }
+      )}
     </div>
   );
 }

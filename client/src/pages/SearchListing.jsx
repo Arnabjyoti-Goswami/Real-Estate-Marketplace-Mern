@@ -126,8 +126,6 @@ const SearchListing = () => {
     getSearchQueriesFromUrl();
   }, [location.search]);
 
-  console.log(listings.length);
-
   const showMoreFunc = async (e) => {
     try {
       const startIndex = listings.length;

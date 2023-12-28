@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import EyeIcon from '../components/EyeIcon.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import OAuth from '../components/OAuth';
+import TimeoutElement from '../components/TimeoutElement.jsx';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [errorTimeout, setErrorTimeout] = useState(null);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [focusField, setFocusField] = useState('');
 
   const navigate = useNavigate();
@@ -29,14 +27,12 @@ const SignUp = () => {
     if (formData.password.length < 8 || !passwordRegex.test(formData.password)) {
       setError('Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.');
       setLoading(false);
-      setNewTimeout();
       return;
     }
 
     if(formData.confirmPassword !== formData.password) {
       setError('Passwords are not matching!');
       setLoading(false);
-      setNewTimeout();
       return;
     }
 
@@ -59,7 +55,6 @@ const SignUp = () => {
       if(data.success === false)  {
         setError(data.message);
         setLoading(false);
-        setNewTimeout();
         return;
       }
       // console.log(data);
@@ -71,28 +66,8 @@ const SignUp = () => {
     catch (error) {
       setLoading(false);
       setError(error.message);
-      setNewTimeout();
     }
   };
-
-  const setNewTimeout = () => {
-    if (errorTimeout) {
-      clearTimeout(errorTimeout);
-    }
-    setErrorTimeout(
-      setTimeout(() => {
-        setError(null);
-      }, 3000)
-    );
-  };
-
-  useEffect(() => {
-    return () => {
-      if (errorTimeout) {
-        clearTimeout(errorTimeout);
-      }
-    };
-  }, [errorTimeout]);
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
@@ -119,49 +94,22 @@ const SignUp = () => {
         onChange={handleChange}
         required
         onClick={ () => {
-          setFocusPassword(false);
-          setFocusConfirmPassword(false);
+          setFocusField('');
         } }/>
-        <div className={`
-         ${(focusField === 'password') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!passwordVisible ? 'password' : 'text'}  
-          placeholder='password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'password') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('password');
-          } }
-          id='password' 
-          onChange={handleChange}
-          required/>
-          <EyeIcon visible={passwordVisible} setVisible={setPasswordVisible}/>
-        </div>
-        <div className={`
-         ${(focusField === 'confirmPassword') ? 'bg-gray-100 border-slate-700' : ''}
-         flex items-center border p-3 rounded-lg
-         `}>
-          <input
-          type={!confirmPasswordVisible ? 'password' : 'text'}  
-          placeholder='confirm password' 
-          className={`
-          w-full
-          focus:outline-none mr-[2px]
-          ${(focusField === 'confirmPassword') ? 'bg-gray-100' : ''}
-          `}
-          onClick={ () => {
-            setFocusField('confirmPassword');
-          } }
-          id='confirmPassword' 
-          onChange={handleChange}
-          required/>
-          <EyeIcon visible={confirmPasswordVisible} setVisible={setConfirmPasswordVisible}/>
-        </div>
+        <PasswordInput
+        id='password'
+        placeholder='password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
+        <PasswordInput
+        id='confirmPassword'
+        placeholder='confirm password'
+        focusField={focusField}
+        setFocusField={setFocusField}
+        handleChange={handleChange}
+        />
         <button disable={loading.toString()} 
         type='submit'
         className='bg-slate-700 text-white p-3 rounded-lg uppercase 
@@ -181,12 +129,15 @@ const SignUp = () => {
         </Link>
       </div>
 
-      {
-      error && 
-      <p className='text-red-500 mt-5'>
-        {error}
-      </p>
-      }
+      <TimeoutElement 
+        tagName='p'
+        classNames='text-red-500 mt-5'
+        valueState={error}
+        valueStateMatchWhenNotEmpty={true}
+        setValueState={setError}
+        valueStateDefaultValue={''}
+        text={error}
+      />
     </div>
   );
 }

@@ -15,9 +15,10 @@ const googleSignin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
 
+    // if user exists then send access_token, if doesn't exist then first create user then send access_token 
     if (user) {
       const token = jwt.sign(
-        { _id: user._id }, 
+        { id: user._id }, 
         process.env.JWT_SECRET_KEY, 
       );
 
@@ -49,7 +50,7 @@ const googleSignin = async (req, res, next) => {
       await newUser.save();
 
       const token = jwt.sign(
-        { _id: newUser._id }, 
+        { id: newUser._id }, 
         process.env.JWT_SECRET_KEY, 
       );
 
