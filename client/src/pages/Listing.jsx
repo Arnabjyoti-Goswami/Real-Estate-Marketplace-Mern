@@ -1,11 +1,5 @@
-import { useLayoutEffect, useState, useRef } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-
-import { Swiper, SwiperSlide } from 'swiper/react';
-import SwiperCore from 'swiper';
-import { Navigation } from 'swiper/modules';
-import 'swiper/css/bundle';
 
 import {
   FaBath,
@@ -18,9 +12,9 @@ import {
 import CopyLink from '../components/CopyLink.jsx';
 import ContactLandlord from '../components/ContactLandlord.jsx';
 
-const Listing = () => {
-  SwiperCore.use([Navigation]);
+import SwiperComponent from '../components/SwiperComponent.jsx';
 
+const Listing = () => {
   const { id : idRouteParam } = useParams();
 
   const [listingData, setListingData] = useState({});
@@ -50,29 +44,8 @@ const Listing = () => {
     }
   };
 
-  const swiperRef = useRef(null);
-
-  const handleKeyDown = (e) => {
-    if (swiperRef.current) {
-      const swiperInstance = swiperRef.current.swiper;
-  
-      if (e.key === 'ArrowLeft') {
-        swiperInstance.slidePrev();
-      } else if (e.key === 'ArrowRight') {
-        swiperInstance.slideNext();
-      }
-    }
-  };
-
   useLayoutEffect(() => {
     fetchListingData();
-    
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-
   }, []);
 
   const objectExists = (obj) => {
@@ -94,19 +67,10 @@ const Listing = () => {
     )}
     {(objectExists(listingData) && !error && !isLoading) && (
     <div>
-      <Swiper navigation ref={swiperRef}>
-      {listingData.imageUrls.map( (imageUrl, index) => (
-      <SwiperSlide key={index}>
-        <div className='h-[550px]'
-        style={{ 
-          background: `url(${imageUrl}) center no-repeat`,
-          backgroundSize: 'cover',
-        }}>
-        </div>
-      </SwiperSlide>
-      ) )
-      }
-      </Swiper>
+      <SwiperComponent
+        listToMap={listingData.imageUrls} 
+        classNames='h-[550px]'
+      />
       <CopyLink />
       <div className='flex flex-col max-w-4xl mx-auto p-3 my-7 gap-4'>
         <p className='text-2xl font-semibold'>

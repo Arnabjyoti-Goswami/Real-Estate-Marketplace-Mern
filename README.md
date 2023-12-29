@@ -2,7 +2,7 @@
 
 A Real Estate Marketplace website built using the MERN stack.
 
-Commands:
+## Commands to run locally:
 
 Terminal 1 (frontend):
 ```
