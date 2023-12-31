@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import useFetch from '../hooks/useFetch.js';
 
 const UserListings = () => {
   const { currentUser } = useSelector(state => state.user);
@@ -15,21 +16,15 @@ const UserListings = () => {
       setShowListingsError('');
       setLoading(true);
 
-      const res = await fetch(`api/user/listings/${currentUser._id}`);
-      const data = await res.json();
-
-      if (data.success === false) {
-        setShowListingsError(data.message);
-        setLoading(false);
-        return;
-      }
+      const url = `/api/user/listings/${currentUser._id}`;
+      const data = await useFetch(url);
 
       setUserListings(data);
       setLoading(false);
 
     } catch (error) {
-      setShowListingsError(error.message);
       setLoading(false);
+      setShowListingsError(error.message);
     }
   };
 
@@ -40,17 +35,11 @@ const UserListings = () => {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const res = await fetch(
-      `/api/listing/delete/${listingId}`,
-      {
+      const fetchOptions = {
         method: 'DELETE',
-      });
-      const data = await res.json();
-
-      if (data.success === false) {
-        setDeleteListingError(data.message);
-        return;
-      }
+      };
+      const url = `/api/listing/delete/${listingId}`;
+      await useFetch(url, fetchOptions);
 
       setUserListings((prev) => prev.filter( (listing) => listing._id !== listingId) );
 

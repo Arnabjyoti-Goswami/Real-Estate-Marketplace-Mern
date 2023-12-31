@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 import getFileNameWithTime from '../utils/getFileNameWithTime';
 import deleteFileFromFirebase from '../utils/deleteFileFromFirebase.js';
+import useFetch from '../hooks/useFetch.js';
 
 const ListingForm = ({ type='create', idRouteParam=null }) => {
   const fetchListingData = async () => {
@@ -112,29 +113,21 @@ const ListingForm = ({ type='create', idRouteParam=null }) => {
         url = `/api/listing/update/${idRouteParam}`;
       }
 
-      const res = await fetch(
-        url, 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
+      const fetchOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(formData),
+      };
 
-      const data = await res.json();
+      const data = await useFetch(url, fetchOptions);
 
       setLoading(false);
-
-      if (data.success === false) {
-        setError(data.message);
-        return;
-      }
-
       navigate(`/listing/${data._id}`);
 
     } catch (error) {
+      setLoading(false);
       setError(error.message);
     }
   };

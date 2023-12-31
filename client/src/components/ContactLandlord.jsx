@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import useFetch from '../hooks/useFetch';
 
 const ContactOptions = ({ listing }) => {
   const [message, setMessage] = useState('');
@@ -16,16 +17,11 @@ const ContactOptions = ({ listing }) => {
     try {
       setError('');
 
-      const res = await fetch(`/api/user/${listing.userRef}`);
-      const data = await res.json();
-
-      if (data.success === false) {
-        setError(data.message);
-        return;
-      }
+      const url = `/api/user/${listing.userRef}`;
+      const data = await useFetch(url);
 
       setLandlord(data);
-      setError(''); 
+      setError('');
 
     } catch (error) {
       setError(error.message);

@@ -17,6 +17,7 @@ import getFileNameWithTime from '../utils/getFileNameWithTime.js';
 import PasswordInput from '../components/PasswordInput.jsx';
 import ForgotPassword from '../components/ForgotPassword.jsx';
 import UserListings from '../components/userListings.jsx';
+import useFetch from '../hooks/useFetch.js';
 
 const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
   let message = null;
@@ -72,6 +73,7 @@ const Profile = () => {
 
   const { currentUser } = useSelector(state => state.user);
 
+  const [focusField, setFocusField] = useState('');
   const [formData, setFormData] = useState({
     username: currentUser.username,
     email: currentUser.email,
@@ -80,11 +82,13 @@ const Profile = () => {
     confirmPassword: '',
     avatar: currentUser.avatar,
   });
-
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [successMsg, setSuccessMsg] = useState('');
+  const fileRef = useRef(null);
+  const [file, setFile ] = useState(undefined);
+  const [fileUploadPercentage, setFileUploadPercentage] = useState(0);
+  const [fileUploadError, setFileUploadError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -142,7 +146,8 @@ const Profile = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+      const url = `/api/user/update/${currentUser._id}`;
+      const fetchOptions = {
         method:'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,32 +159,20 @@ const Profile = () => {
           password: formData.password,
           avatar: formData.avatar,
         }),
-      });
+      };
 
-      const data = await res.json();
-      if(data.success === false)  {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
-      // console.log(data);
+      const data = await useFetch(url, fetchOptions);
 
       setLoading(false);
       setError(null);
       dispatch(updateUserSuccess(data));
       setSuccessMsg('Profile updated successfully!');
-
     }
     catch (error) {
       setLoading(false);
       setError(error.message);
     }
   };
-
-  const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [focusField, setFocusField] = useState('');
 
   // Firebase storage rules:
   /*
@@ -199,13 +192,6 @@ const Profile = () => {
     }
   }
   */
-
-  const fileRef = useRef(null);
-
-  const [file, setFile ] = useState(undefined);
-
-  const [fileUploadPercentage, setFileUploadPercentage] = useState(0);
-  const [fileUploadError, setFileUploadError] = useState(null);
 
   useEffect(() => {
     if (file) {
@@ -257,7 +243,8 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+      const url = `/api/user/delete/${currentUser._id}`;
+      const fetchOptions = {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -265,15 +252,8 @@ const Profile = () => {
         body: JSON.stringify({
           oldPassword: formData.oldPassword,
         }),
-      });
-
-      const data = await res.json();
-
-      if(data.success === false)  {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
+      };
+      await useFetch(url, fetchOptions);
 
       setLoading(false);
       setError(null);
