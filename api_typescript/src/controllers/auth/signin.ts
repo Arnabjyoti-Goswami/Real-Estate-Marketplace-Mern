@@ -1,9 +1,10 @@
 import User from '@models/userModel';
 import bcryptjs from 'bcryptjs';
 import errorHandler from '@utils/errorHandler';
-import jwt from 'jsonwebtoken';
+import { sign } from 'jsonwebtoken';
 import env from '@utils/validateEnv';
-import asyncHandler from '@src/utils/asyncWrapper';
+import asyncHandler from '@utils/asyncWrapper';
+import getMsFromString from '@utils/getMsFromString';
 
 const signin = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -15,9 +16,16 @@ const signin = asyncHandler(async (req, res, next) => {
 
   if (!validPassword) return next(errorHandler(401, 'Wrong credentials!'));
 
-  const token = jwt.sign(
+  const token = sign(
     { id: validUser._id }, 
     env.JWT_SECRET_KEY, 
+    { expiresIn: env.ACCESS_TOKEN_LIFE }
+  );
+
+  const refresh_token = sign(
+    { id: validUser._id },
+    env.JWT_SECRET_KEY_2,
+    { expiresIn: env.REFRESH_TOKEN_LIFE }
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -27,8 +35,19 @@ const signin = asyncHandler(async (req, res, next) => {
     .cookie(
       'access_token',
       token,
-      { httpOnly: true },
-      )
+      { 
+        httpOnly: true,
+        maxAge: getMsFromString(env.ACCESS_TOKEN_LIFE), 
+      },
+    )
+    .cookie(
+      'refresh_token',
+      refresh_token,
+      { 
+        httpOnly: true,
+        maxAge: getMsFromString(env.REFRESH_TOKEN_LIFE),
+      },
+    )
     .status(200)
     .json(userWithoutPassword);
 });

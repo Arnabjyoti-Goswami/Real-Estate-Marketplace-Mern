@@ -10,6 +10,8 @@ mongoose
   .then(() => {
     console.log('Connected to MongoDB via mongoose.');
     app.listen(env.PORT, () => {
+      const startTime = new Date().toLocaleString();
+      console.log('Server started at: ' + startTime);
       console.log('Server running on port: ' + env.PORT);
     });
   })

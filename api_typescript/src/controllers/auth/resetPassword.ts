@@ -19,7 +19,7 @@ type Decoded = {
 const resetPassword = asyncHandler(async (req, res, next) => {
   const { newPassword, token } : reqBody = req.body;
 
-  let decoded;
+  let decoded : object | string | null = null;
 
   try {
     decoded = verify(token, env.JWT_RESET_PASSWORD_SECRET_KEY);
@@ -36,8 +36,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({email: emailId});
   if (!user) return next(errorHandler(404, 'User not found!'));
 
-  const { NUM_SALT: saltRounds } = process.env;
-  const hashedPassword = bcryptjs.hashSync(newPassword, Number(saltRounds));
+  const hashedPassword = bcryptjs.hashSync(newPassword, env.NUM_SALT);
 
   await User.findOneAndUpdate(
     { email: emailId },
