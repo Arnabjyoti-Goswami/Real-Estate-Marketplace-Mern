@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import Header from './components/Header.jsx';
+import Header from '@/components/Header';
 
 import {
   Home,
@@ -13,26 +13,26 @@ import {
   UpdateListing,
   ResetPassword,
   SearchListing,
-} from './pages/index.js';
+} from '@/pages';
 
-import PrivateRoute from './components/PrivateRoute.jsx';
+import PrivateRoute from '@/components/PrivateRoute';
 
 const pages = [
-  { 
-    route: '/', 
-    component: Home, 
+  {
+    route: '/',
+    component: Home,
   },
-  { 
-    route: '/about', 
-    component: About, 
+  {
+    route: '/about',
+    component: About,
   },
-  { 
-    route: '/sign-in', 
-    component: SignIn, 
+  {
+    route: '/sign-in',
+    component: SignIn,
   },
-  { 
-    route: '/sign-up', 
-    component: SignUp, 
+  {
+    route: '/sign-up',
+    component: SignUp,
   },
   {
     route: '/listing/:id',
@@ -45,34 +45,33 @@ const pages = [
   {
     route: '/search',
     component: SearchListing,
-  }
+  },
 ];
 
 const App = () => {
   return (
-  <BrowserRouter >
-    <Header />
-    <Routes>
-    {
-    pages.map(item => (
-      <Route path={item.route}
-      key={item.route}
-      element={<item.component />}
-      />
-    ))
-    }
-      <Route element={<PrivateRoute />}>
-        <Route path='/profile' element={<Profile />} />
-      </Route>
-      <Route element={<PrivateRoute />}>
-        <Route path='/create-listing' element={<CreateListing />} />
-      </Route>
-      <Route element={<PrivateRoute />}>
-        <Route path='/update-listing/:id' element={<UpdateListing />} />
-      </Route>
-    </Routes>
-  </BrowserRouter>
+    <BrowserRouter>
+      <Header />
+      <Routes>
+        {pages.map((item) => (
+          <Route
+            path={item.route}
+            key={item.route}
+            element={<item.component />}
+          />
+        ))}
+        <Route element={<PrivateRoute />}>
+          <Route path='/profile' element={<Profile />} />
+        </Route>
+        <Route element={<PrivateRoute />}>
+          <Route path='/create-listing' element={<CreateListing />} />
+        </Route>
+        <Route element={<PrivateRoute />}>
+          <Route path='/update-listing/:id' element={<UpdateListing />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

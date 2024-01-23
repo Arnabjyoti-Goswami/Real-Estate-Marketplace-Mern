@@ -28,12 +28,12 @@ const userSlice = createSlice({
     deleteUserSuccess: (state) => {
       state.currentUser = null;
     },
-  }
+  },
 });
 
-export const { 
-  signInStart, 
-  signInSuccess, 
+export const {
+  signInStart,
+  signInSuccess,
   signInFailure,
   updateUserSuccess,
   deleteUserSuccess,
