@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "lint": "eslint . --ext .ts",
-    "build": "tsc --project tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
+    "build": "tsc --project tsconfig.json && tsc-alias --project tsconfig.json",
     "start": "node dist/server.js",
     "html": "ts-node src/scripts/copyPasteHtmlDoc.ts"
   },

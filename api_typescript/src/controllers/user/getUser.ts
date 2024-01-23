@@ -9,13 +9,18 @@ const getUser = asyncHandler(async (req, res, next) => {
 
   if (!user) return next(errorHandler(404, 'User not found!'));
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password: pass, ...userWithoutPassword } = user.toObject();
+  const fetchedUser = user.toObject();
 
-  res
-    .status(200)
-    .json(userWithoutPassword);
+  const sendData = {
+    _id: fetchedUser._id,
+    username: fetchedUser.username,
+    email: fetchedUser.email,
+    avatar: fetchedUser.email,
+    createdAt: fetchedUser.createdAt,
+    updatedAt: fetchedUser.updatedAt,
+  };
 
+  res.status(200).json(sendData);
 });
 
 export default getUser;
