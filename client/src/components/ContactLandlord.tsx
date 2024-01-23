@@ -6,9 +6,13 @@ import {
   RefObject,
   ElementRef,
 } from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import useFetch from '@/hooks/useFetch';
+
+import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
+
+import fetchHook from '@/hooks/fetchHook';
+import { UserSchema } from '@/zod-schemas/apiSchemas';
 
 const ContactOptions = ({ listing }) => {
   const [message, setMessage] = useState('');
@@ -17,24 +21,14 @@ const ContactOptions = ({ listing }) => {
     setMessage(e.target.value);
   };
 
-  const [error, setError] = useState('');
-  const [landlord, setLandlord] = useState({});
-
-  const fetchLandlordData = async () => {
-    try {
-      setError('');
-
-      const url = `/api/user/${listing.userRef}`;
-      const data = await useFetch(url);
-
-      setLandlord(data);
-      setError('');
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      }
-    }
-  };
+  const {
+    data: landlord,
+    isPending,
+    error,
+  } = useQuery({
+    queryFn: () => fetchHook(`/api/user/${listing.userRef}`),
+    queryKey: ['landlordData'],
+  });
 
   const bottomRef = useRef<ElementRef<'textarea'>>(null);
 
@@ -42,10 +36,6 @@ const ContactOptions = ({ listing }) => {
     if (!ref.current) return;
     ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  useEffect(() => {
-    fetchLandlordData();
-  }, []);
 
   useEffect(() => {
     scrollTo(bottomRef);
