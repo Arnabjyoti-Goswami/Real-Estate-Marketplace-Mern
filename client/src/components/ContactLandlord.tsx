@@ -1,14 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  ChangeEvent,
+  RefObject,
+  ElementRef,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import useFetch from '../hooks/useFetch';
+import useFetch from '@/hooks/useFetch';
 
 const ContactOptions = ({ listing }) => {
   const [message, setMessage] = useState('');
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<ElementRef<'textarea'>>) => {
     setMessage(e.target.value);
-  }
+  };
 
   const [error, setError] = useState('');
   const [landlord, setLandlord] = useState({});
@@ -22,18 +29,19 @@ const ContactOptions = ({ listing }) => {
 
       setLandlord(data);
       setError('');
-
-    } catch (error) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      }
     }
-  }
+  };
 
-  const bottomRef = useRef(null);
+  const bottomRef = useRef<ElementRef<'textarea'>>(null);
 
-  const scrollTo = (ref) => {
+  const scrollTo = (ref: RefObject<ElementRef<'textarea'>>) => {
     if (!ref.current) return;
-    ref.current.scrollIntoView({ behavior: "smooth" });
-  }
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
     fetchLandlordData();
@@ -46,65 +54,64 @@ const ContactOptions = ({ listing }) => {
 
   return (
     <>
-    {landlord.username && (
-    <div className='flex flex-col gap-2'>
-      <p>
-        Contact {' '}
-        <span className='font-semibold'>
-          {landlord.username}
-        </span>
-        {' '} for {' '}
-        <span className='font-semibold'>
-          {listing.name.toLowerCase()}
-        </span>
-      </p>
-      <textarea
-      id='message'
-      rows='2'
-      onChange={handleChange}
-      ref={bottomRef}
-      placeholder='Enter your message here...'
-      className='w-full border p-3 rounded-lg'
-      />
-      <Link to={`mailto:${landlord.email}?subject=Regarding ${listing.name}&body=${message}`}
-      className='bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95'>
-        Send Message
-      </Link>
-    </div>
-    )}
-    {error && (
-      <p className='text-center my-7 text-lg text-red-500'>
-        {error}
-      </p>
-    )}
+      {landlord.username && (
+        <div className='flex flex-col gap-2'>
+          <p>
+            Contact <span className='font-semibold'>{landlord.username}</span>{' '}
+            for{' '}
+            <span className='font-semibold'>{listing.name.toLowerCase()}</span>
+          </p>
+          <textarea
+            id='message'
+            rows={2}
+            onChange={handleChange}
+            ref={bottomRef}
+            placeholder='Enter your message here...'
+            className='w-full border p-3 rounded-lg'
+          />
+          <Link
+            to={`mailto:${landlord.email}?subject=Regarding ${listing.name}&body=${message}`}
+            className='bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95'
+          >
+            Send Message
+          </Link>
+        </div>
+      )}
+      {error && (
+        <p className='text-center my-7 text-lg text-red-500'>{error}</p>
+      )}
     </>
   );
 };
 
 const ContactLandlord = ({ listing }) => {
-  const { currentUser } = useSelector(state => state.user);
+  const { currentUser } = useSelector((state) => state.user);
 
   const [showContactOptions, setShowContactOptions] = useState(false);
 
   return (
     <>
-    {(currentUser && (listing.userRef !== currentUser._id) && !showContactOptions) && (
-      <button className='bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3'
-      onClick={() => {
-        setShowContactOptions(true);
-      }}>
-        Contact Landlord
-      </button>
-    )}
-    {showContactOptions && (
-      <ContactOptions listing={listing} />
-    )}
-    {showContactOptions && (
-      <button className='bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3'
-      onClick={() => setShowContactOptions(false)}>
-        Hide Contact Details
-      </button>
-    )}
+      {currentUser &&
+        listing.userRef !== currentUser._id &&
+        !showContactOptions && (
+          <button
+            className='bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3'
+            onClick={() => {
+              setShowContactOptions(true);
+            }}
+          >
+            Contact Landlord
+          </button>
+        )}
+      {showContactOptions && <ContactOptions listing={listing} />}
+      {showContactOptions && (
+        <button
+          className='bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3'
+          onClick={() => setShowContactOptions(false)}
+        >
+          Hide Contact Details
+        </button>
+      )}
     </>
   );
 };

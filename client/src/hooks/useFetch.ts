@@ -1,10 +1,17 @@
-const useFetch = async (url, options=null) => {
+type optionsType = {
+  method: 'POST' | 'GET' | 'DELETE';
+  headers?: {
+    'Content-Type': 'application/json';
+  };
+};
+
+const useFetch = async (url: string, options: null | optionsType = null) => {
   if (options === null) {
     options = {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     };
   }
 
@@ -23,12 +30,10 @@ const useFetch = async (url, options=null) => {
       }
 
       return data_again;
-    }
-    else {
+    } else {
       throw new Error(data.message);
     }
-  }
-  else {
+  } else {
     return data;
   }
 };
