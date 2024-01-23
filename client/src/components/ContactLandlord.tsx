@@ -12,7 +12,8 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
 import fetchHook from '@/hooks/fetchHook';
-import { UserSchema } from '@/zod-schemas/apiSchemas';
+import { TUser, UserSchema } from '@/zod-schemas/apiSchemas';
+import { RootState } from '@/redux/store';
 
 const ContactOptions = ({ listing }) => {
   const [message, setMessage] = useState('');
@@ -21,14 +22,19 @@ const ContactOptions = ({ listing }) => {
     setMessage(e.target.value);
   };
 
-  const {
-    data: landlord,
-    isPending,
-    error,
-  } = useQuery({
-    queryFn: () => fetchHook(`/api/user/${listing.userRef}`),
+  const fetchLandlord = async () => {
+    const url = `/api/user/${listing.userRef}` as const;
+    const landlordData = await fetchHook(url);
+    const parse = UserSchema.parse(landlordData);
+    return parse;
+  };
+
+  const { data, error } = useQuery({
+    queryFn: () => fetchLandlord(),
     queryKey: ['landlordData'],
   });
+
+  const landlord = data as TUser;
 
   const bottomRef = useRef<ElementRef<'textarea'>>(null);
 
@@ -68,14 +74,14 @@ const ContactOptions = ({ listing }) => {
         </div>
       )}
       {error && (
-        <p className='text-center my-7 text-lg text-red-500'>{error}</p>
+        <p className='text-center my-7 text-lg text-red-500'>{error.message}</p>
       )}
     </>
   );
 };
 
 const ContactLandlord = ({ listing }) => {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state: RootState) => state.user);
 
   const [showContactOptions, setShowContactOptions] = useState(false);
 
