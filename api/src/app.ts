@@ -21,13 +21,7 @@ app.use('/api/listing', listingRouter);
 import { Request, Response, NextFunction } from 'express';
 import CustomError from '@utils/customError';
 
-app.use((
-  err: CustomError, 
-  req: Request, 
-  res: Response, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction,
-) => {
+app.use((err: CustomError, req: Request, res: Response, _: NextFunction) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error!';
 
