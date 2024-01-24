@@ -1,4 +1,4 @@
-const getFileAndExtension = (filename) => {
+const getFileAndExtension = (filename: string) => {
   const lastDotIndex = filename.lastIndexOf('.');
   let file = '';
   let extension = '';
@@ -11,7 +11,7 @@ const getFileAndExtension = (filename) => {
   return { file, extension };
 };
 
-const getFileNameWithTime = (filename) => {
+const getFileNameWithTime = (filename: string) => {
   const { file, extension } = getFileAndExtension(filename);
 
   const timestamp = new Date().getTime();
