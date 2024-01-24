@@ -11,8 +11,9 @@ const getListing = asyncHandler(async (req, res, next) => {
     return next(errorHandler(400, 'Listing not found!'));
   }
 
-  res.status(200).json(listing);
+  const { __v: _, ...rest } = listing;
 
+  res.status(200).json(rest);
 });
 
 export default getListing;

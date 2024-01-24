@@ -1,6 +1,13 @@
+import { TUser } from '@/zod-schemas/apiSchemas';
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
+type TReduxUserState = {
+  currentUser: TUser | null;
+  error: null | Error;
+  loading: boolean;
+};
+
+const initialState: TReduxUserState = {
   currentUser: null,
   error: null,
   loading: false,

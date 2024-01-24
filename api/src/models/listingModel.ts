@@ -57,7 +57,7 @@ const listingSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 type ListingType = InferSchemaType<typeof listingSchema>;

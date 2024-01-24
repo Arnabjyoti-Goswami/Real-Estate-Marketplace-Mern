@@ -12,10 +12,14 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
 import fetchHook from '@/hooks/fetchHook';
-import { TUser, UserSchema } from '@/zod-schemas/apiSchemas';
+import { TUser, UserSchema, TListing } from '@/zod-schemas/apiSchemas';
 import { RootState } from '@/redux/store';
 
-const ContactOptions = ({ listing }) => {
+interface ContactOptionsProps {
+  listing: TListing;
+}
+
+const ContactOptions = ({ listing }: ContactOptionsProps) => {
   const [message, setMessage] = useState('');
 
   const handleChange = (e: ChangeEvent<ElementRef<'textarea'>>) => {
@@ -80,7 +84,7 @@ const ContactOptions = ({ listing }) => {
   );
 };
 
-const ContactLandlord = ({ listing }) => {
+const ContactLandlord = ({ listing }: ContactOptionsProps) => {
   const { currentUser } = useSelector((state: RootState) => state.user);
 
   const [showContactOptions, setShowContactOptions] = useState(false);
