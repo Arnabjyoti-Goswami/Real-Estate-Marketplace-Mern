@@ -1,20 +1,30 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { SwiperRef } from 'swiper/react';
+
 import SwiperCore from 'swiper';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css/bundle';
 
 import { useRef, useEffect } from 'react';
 
+interface SwiperComponentProps {
+  listToMap: string[];
+  keyDownElement: 'body' | 'swiper';
+  classNames: string;
+}
+
 const SwiperComponent = ({
   listToMap,
   keyDownElement = 'body',
   classNames = '',
-}) => {
+}: SwiperComponentProps) => {
   SwiperCore.use([Navigation]);
 
-  const swiperRef = useRef(null);
+  const swiperRef = useRef<SwiperRef>(null);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+    if (keyDownElement !== 'swiper') return;
+
     if (swiperRef.current) {
       const swiperInstance = swiperRef.current.swiper;
 
