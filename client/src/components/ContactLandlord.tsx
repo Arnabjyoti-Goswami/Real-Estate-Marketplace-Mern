@@ -6,7 +6,8 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
 import fetchHook from '@/hooks/fetchHook';
-import { TUser, UserSchema, TListing } from '@/zod-schemas/apiSchemas';
+import type { TUser, TListing } from '@/zod-schemas/apiSchemas';
+import { UserSchema } from '@/zod-schemas/apiSchemas';
 import { RootState } from '@/redux/store';
 
 interface ContactOptionsProps {

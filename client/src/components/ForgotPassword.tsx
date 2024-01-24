@@ -1,6 +1,10 @@
 import { useState, useRef } from 'react';
 
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+
 import TimeoutElement from '@/components/TimeoutElement';
+import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
 
 interface ForgotPasswordProps {
   emailId: string;
@@ -9,7 +13,7 @@ interface ForgotPasswordProps {
 const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
   const [showSendEmailOption, setShowSendEmailOption] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -27,45 +31,30 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
     }, timeInSeconds * 1000);
   };
 
-  const [error, setError] = useState('');
+  const { mutate, isPending, isError, isSuccess, error } = useMutation({
+    mutationFn: async (email: string) => {
+      if (!email) throw new Error('You must provide your email id!');
 
-  const handleApiCall = async () => {
-    try {
-      setError('');
-      setShowSendEmailOption(false);
-      setLoading(true);
+      const url = '/api/auth/forgot-password' as const;
 
-      if (!emailId) {
-        setError('You must provide your email id!');
-        setLoading(false);
-        return;
-      }
+      const data = axios
+        .post(url, email)
+        .then((response) => {
+          return response.data;
+        })
+        .catch((error) => {
+          if ('message' in error) throw new Error(error.message);
+        });
 
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emailId,
-        }),
-      });
-      const data = await res.json();
+      const parse = ForgotPasswordSchema.parse(data);
 
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
+      return parse;
+    },
+  });
 
-      setError('');
-      setLoading(false);
-      setSuccessMsg('Email sent successfully! Check your inbox.');
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
-    }
-  };
+  if (isPending) setShowSendEmailOption(false);
+  if (isSuccess) setSuccessMsg('Email sent successfully! Check your inbox.');
+  if (isError) setErrorMsg(error.message);
 
   return (
     <div
@@ -84,22 +73,24 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
         <span
           className='text-slate-600
           hover:underline hover:text-Blue cursor-pointer'
-          onClick={handleApiCall}
+          onClick={() => mutate(emailId)}
         >
           Receive an email with a link to reset your password.
         </span>
       )}
+
       {successMsg && <span className='text-green-600'>{successMsg}</span>}
-      {loading && <span className='text-slate-700'>Sending email...</span>}
+      {isPending && <span className='text-slate-700'>Sending email...</span>}
+
       <TimeoutElement<string>
         tagName='span'
         classNames='text-red-600'
-        valueState={error}
+        valueState={errorMsg}
         valueStateValueToMatch={''}
         valueStateMatchWhenNotEmpty={true}
-        setValueState={setError}
+        setValueState={setErrorMsg}
         valueStateDefaultValue={''}
-        text={error}
+        text={errorMsg}
       />
     </div>
   );

@@ -29,9 +29,13 @@ export const ListingSchema = z.object({
 
 export type TListing = z.infer<typeof ListingSchema>;
 
-export type FetchFailure = {
-  success: boolean;
-  message: string;
-};
+export const ForgotPasswordSchema = z.object({
+  success: z.boolean(),
+  message: z.string().min(1),
+});
+
+export type TForgotPassword = z.infer<typeof ForgotPasswordSchema>;
+
+type FetchFailure = TForgotPassword;
 
 export type TFetchHook = FetchFailure | TUser;
