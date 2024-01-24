@@ -1,4 +1,5 @@
-import { useState, useEffect, ChangeEvent, ElementRef } from 'react';
+import { useState, useEffect } from 'react';
+import type { ChangeEvent, ElementRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,12 +7,12 @@ import {
   signInStart,
   signInFailure,
   signInSuccess,
-} from '../redux/user/userSlice.js';
-import OAuth from '../components/OAuth.jsx';
+} from '@/redux/user/userSlice';
+import OAuth from '@/components/OAuth';
 
-import ForgotPassword from '../components/ForgotPassword.jsx';
-import PasswordInput from '../components/PasswordInput.jsx';
-import { RootState } from '@/redux/store';
+import ForgotPassword from '@/components/ForgotPassword';
+import PasswordInput from '@/components/PasswordInput';
+import type { RootState } from '@/redux/store';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -112,8 +113,8 @@ const SignIn = () => {
           disabled={loading}
           type='submit'
           className='bg-slate-700 text-white p-3 rounded-lg uppercase 
-        hover:opacity-95 
-        disabled:placeholder-opacity-80'
+          hover:opacity-95 
+          disabled:placeholder-opacity-80'
         >
           {loading ? 'Loading...' : 'Sign In'}
         </button>

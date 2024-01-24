@@ -1,11 +1,5 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  ChangeEvent,
-  RefObject,
-  ElementRef,
-} from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { ChangeEvent, RefObject, ElementRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useSelector } from 'react-redux';

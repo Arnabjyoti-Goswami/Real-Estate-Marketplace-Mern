@@ -1,5 +1,7 @@
-import { useState, ChangeEvent, ElementRef } from 'react';
-import EyeIcon from './EyeIcon.jsx';
+import { useState } from 'react';
+import type { ChangeEvent, ElementRef } from 'react';
+
+import EyeIcon from '@/components/EyeIcon';
 
 interface PasswordInputProps {
   id: string;

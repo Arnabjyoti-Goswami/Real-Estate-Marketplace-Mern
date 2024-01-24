@@ -1,4 +1,5 @@
-import { InferSchemaType, Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import type { InferSchemaType } from 'mongoose';
 
 const listingSchema = new Schema(
   {
