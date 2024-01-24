@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-import TimeoutElement from './TimeoutElement.jsx';
+import TimeoutElement from '@/components/TimeoutElement';
 
 interface ForgotPasswordProps {
   emailId: string;
@@ -11,7 +11,7 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleClick = () => {
     const timeInSeconds = 3;
@@ -70,12 +70,12 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
   return (
     <div
       className='flex flex-col items-center gap-1
-  my-2'
+      my-2'
     >
       <button
         className='text-slate-700
-    hover:underline cursor-pointer
-    hover:text-Blue'
+        hover:underline cursor-pointer
+        hover:text-Blue'
         onClick={handleClick}
       >
         Forgot Password?
@@ -91,7 +91,7 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
       )}
       {successMsg && <span className='text-green-600'>{successMsg}</span>}
       {loading && <span className='text-slate-700'>Sending email...</span>}
-      <TimeoutElement
+      <TimeoutElement<string>
         tagName='span'
         classNames='text-red-600'
         valueState={error}

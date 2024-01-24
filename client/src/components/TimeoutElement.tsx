@@ -1,17 +1,32 @@
 import { useState, useEffect } from 'react';
+import type { Dispatch as TDispatch, SetStateAction as TSetState } from 'react';
 
-const TimeoutElement = ({ 
-  tagName='span', 
-  classNames='',
+type TValueState = number | string;
+
+interface TimeoutElementProps<T extends TValueState> {
+  tagName?: 'span' | 'p' | 'div';
+  classNames?: string;
+  duration?: number;
+  valueState: T;
+  valueStateValueToMatch?: T;
+  valueStateMatchWhenNotEmpty?: boolean;
+  setValueState: TDispatch<TSetState<T>>;
+  text: string;
+  valueStateDefaultValue: T;
+}
+
+const TimeoutElement = <T extends TValueState>({
+  tagName = 'span',
+  classNames = '',
+  duration = 3000,
   valueState,
-  valueStateValueToMatch=undefined,
-  valueStateMatchWhenNotEmpty=false,
+  valueStateValueToMatch = undefined,
+  valueStateMatchWhenNotEmpty = false,
   setValueState,
   valueStateDefaultValue,
   text,
-  duration=3000,
-}) => {
-  const [timeoutState, setTimeoutState] = useState(null);
+}: TimeoutElementProps<T>) => {
+  const [timeoutState, setTimeoutState] = useState<null | NodeJS.Timeout>(null);
 
   const setNewTimeout = () => {
     if (timeoutState) {
@@ -23,44 +38,30 @@ const TimeoutElement = ({
     setTimeoutState(timeout);
   };
 
-  if (valueStateMatchWhenNotEmpty) {
-    useEffect(() => {
+  useEffect(() => {
+    if (valueStateMatchWhenNotEmpty) {
       if (valueState) {
         setNewTimeout();
       }
-    }, [valueState]);
-  }
-  else {
-    useEffect(() => {
+    } else {
       if (valueState === valueStateValueToMatch) {
         setNewTimeout();
       }
-    }, [valueState]);
-  }
+    }
+  }, [valueState]);
 
   let returnElement = null;
   if (tagName === 'span') {
-    returnElement = 
-    <span className={classNames}>
-      {text}
-    </span>;
+    returnElement = <span className={classNames}>{text}</span>;
   } else if (tagName === 'p') {
-    returnElement = 
-    <p className={classNames}>
-      {text}
-    </p>;
+    returnElement = <p className={classNames}>{text}</p>;
   } else if (tagName === 'div') {
-    returnElement = 
-    <div className={classNames}>
-      {text}
-    </div>;
+    returnElement = <div className={classNames}>{text}</div>;
   } else {
     returnElement = null;
   }
 
-  return (
-    valueState && returnElement
-  );
+  return valueState && returnElement;
 };
 
 export default TimeoutElement;
