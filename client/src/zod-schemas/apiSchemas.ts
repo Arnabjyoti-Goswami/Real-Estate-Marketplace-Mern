@@ -12,6 +12,7 @@ export const UserSchema = z.object({
 export type TUser = z.infer<typeof UserSchema>;
 
 export const ListingSchema = z.object({
+  _id: z.string().min(1),
   userRef: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
