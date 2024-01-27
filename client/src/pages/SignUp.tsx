@@ -7,7 +7,7 @@ import PasswordInput from '@/components/PasswordInput';
 import OAuth from '@/components/OAuth';
 import TimeoutElement from '@/components/TimeoutElement';
 import { postApi } from '@/apiCalls/fetchHook';
-import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { NoDataResSchema } from '@/zod-schemas/apiSchemas';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -37,7 +37,7 @@ const SignUp = () => {
         password: formData.password,
       };
       const data = await postApi(url, postBody);
-      const parse = ForgotPasswordSchema.parse(data);
+      const parse = NoDataResSchema.parse(data);
       return parse;
     },
     onError: (error) => {

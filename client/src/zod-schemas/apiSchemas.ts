@@ -34,16 +34,14 @@ export const ListingsSchema = z.array(ListingSchema);
 
 export type TListings = z.infer<typeof ListingsSchema>;
 
-export const ForgotPasswordSchema = z.object({
+export const NoDataResSchema = z.object({
   success: z.boolean(),
   message: z.string().min(1),
 });
 
-export type TForgotPassword = z.infer<typeof ForgotPasswordSchema>;
+export type TNoDataRes = z.infer<typeof NoDataResSchema>;
 
-type FetchFailure = TForgotPassword;
-
-export type TGetApiRes = FetchFailure | TUser | TListing;
+export type TGetApiRes = TNoDataRes | TUser | TListing;
 
 type TPostBodyUpdateUser = {
   username: string;
@@ -79,6 +77,12 @@ type TPostBodyUserSignin = {
   password: string;
 };
 
+export type TPostBodyUserSignup = {
+  email: string;
+  password: string;
+  username: string;
+};
+
 export type TPostBody =
   | TPostBodyForgotPassword
   | TPostBodyListing
@@ -86,8 +90,9 @@ export type TPostBody =
   | TPostBodyUpdateUser
   | TPostBodyDeleteUser
   | TPostBodyResetPassword
-  | TPostBodyUserSignin;
+  | TPostBodyUserSignin
+  | TPostBodyUserSignup;
 
-export type TPostApiRes = FetchFailure | TUser | TListing;
+export type TPostApiRes = TNoDataRes | TUser | TListing;
 
-export type TDeleteApiRes = FetchFailure;
+export type TDeleteApiRes = TNoDataRes;

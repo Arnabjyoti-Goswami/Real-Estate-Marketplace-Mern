@@ -14,7 +14,7 @@ import { updateUserSuccess, deleteUserSuccess } from '@/redux/user/userSlice';
 import type { RootState } from '@/redux/store';
 
 import type { TUser } from '@/zod-schemas/apiSchemas';
-import { UserSchema, ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { UserSchema, NoDataResSchema } from '@/zod-schemas/apiSchemas';
 import { getApi, postApi } from '@/apiCalls/fetchHook';
 
 import TimeoutElement from '@/components/TimeoutElement';
@@ -259,7 +259,7 @@ const Profile = () => {
     mutationFn: async () => {
       const url = '/api/auth/signout' as const;
       const data = await getApi(url);
-      const parse = ForgotPasswordSchema.parse(data);
+      const parse = NoDataResSchema.parse(data);
       return parse;
     },
     onSuccess: () => {

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import EyeIcon from '@/components/EyeIcon';
 import { postApi } from '@/apiCalls/fetchHook';
-import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { NoDataResSchema } from '@/zod-schemas/apiSchemas';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const ResetPassword = () => {
         token: token,
       };
       const data = postApi(url, postBody);
-      const parse = ForgotPasswordSchema.parse(data);
+      const parse = NoDataResSchema.parse(data);
       return parse;
     },
   });

@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 import TimeoutElement from '@/components/TimeoutElement';
-import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { NoDataResSchema } from '@/zod-schemas/apiSchemas';
 import { postApi } from '@/apiCalls/fetchHook';
 
 interface ForgotPasswordProps {
@@ -40,7 +40,7 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
 
       const data = await postApi(url, postBody);
 
-      const parse = ForgotPasswordSchema.parse(data);
+      const parse = NoDataResSchema.parse(data);
       return parse;
     },
   });
