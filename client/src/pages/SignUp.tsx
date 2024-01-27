@@ -1,120 +1,124 @@
 import { useState } from 'react';
+import type { ChangeEvent, ElementRef, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import PasswordInput from '../components/PasswordInput.jsx';
-import OAuth from '../components/OAuth';
-import TimeoutElement from '../components/TimeoutElement.jsx';
+import { useMutation } from '@tanstack/react-query';
+
+import PasswordInput from '@/components/PasswordInput';
+import OAuth from '@/components/OAuth';
+import TimeoutElement from '@/components/TimeoutElement';
+import { postApi } from '@/apiCalls/fetchHook';
+import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    password: '',
+    confirmPassword: '',
+    username: '',
+    email: '',
+  });
+  const [errorMsg, setErrorMsg] = useState('');
   const [focusField, setFocusField] = useState('');
 
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<ElementRef<'input'>>) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
-    // console.log(e.target.id, ':', e.target.value);
   };
 
-  const handleSubmit = async (e) => {
+  const { mutate: mutateSignUpUser, isPending: loading } = useMutation({
+    mutationFn: async () => {
+      const url = '/api/auth/signup' as const;
+      const postBody = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      };
+      const data = await postApi(url, postBody);
+      const parse = ForgotPasswordSchema.parse(data);
+      return parse;
+    },
+    onError: (error) => {
+      setErrorMsg(error.message);
+    },
+    onSuccess: () => {
+      navigate('/sign-in');
+    },
+  });
+
+  const handleSubmit = async (e: FormEvent<ElementRef<'form'>>) => {
     e.preventDefault();
 
-    const passwordRegex = /^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])|(?=.*\d)/;
-    if (formData.password.length < 8 || !passwordRegex.test(formData.password)) {
-      setError('Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.');
-      setLoading(false);
+    const passwordRegex = /^(?=.*[!@#$%^&*()_+{}[\]:;<>,.?~\\/-])|(?=.*\d)/;
+    if (
+      formData.password.length < 8 ||
+      !passwordRegex.test(formData.password)
+    ) {
+      setErrorMsg(
+        'Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.'
+      );
       return;
     }
 
-    if(formData.confirmPassword !== formData.password) {
-      setError('Passwords are not matching!');
-      setLoading(false);
+    if (formData.confirmPassword !== formData.password) {
+      setErrorMsg('Passwords are not matching!');
       return;
     }
 
-    try {
-      setLoading(true);
-
-      const res = await fetch('/api/auth/signup', {
-        method:'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await res.json();
-      if(data.success === false)  {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
-      // console.log(data);
-
-      setLoading(false);
-      setError(null);
-      navigate('/sign-in');
-    } 
-    catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
+    mutateSignUpUser();
   };
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
-      <h1 className='text-3xl text-center font-semibold my-7'>
-        Sign Up
-      </h1>
-      <form className='flex flex-col gap-4' 
-      onSubmit={handleSubmit}>
-        <input type='text' 
-        placeholder='username' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='username' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusField('');
-        } }/>
-        <input type='email' 
-        placeholder='email' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='email' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusField('');
-        } }/>
-        <PasswordInput
-        id='password'
-        placeholder='password'
-        focusField={focusField}
-        setFocusField={setFocusField}
-        handleChange={handleChange}
+      <h1 className='text-3xl text-center font-semibold my-7'>Sign Up</h1>
+      <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
+        <input
+          type='text'
+          placeholder='username'
+          className='border p-3 rounded-lg
+        focus:bg-gray-100 focus:border-slate-700 focus:outline-none'
+          id='username'
+          onChange={handleChange}
+          required
+          onClick={() => {
+            setFocusField('');
+          }}
+        />
+        <input
+          type='email'
+          placeholder='email'
+          className='border p-3 rounded-lg
+        focus:bg-gray-100 focus:border-slate-700 focus:outline-none'
+          id='email'
+          onChange={handleChange}
+          required
+          onClick={() => {
+            setFocusField('');
+          }}
         />
         <PasswordInput
-        id='confirmPassword'
-        placeholder='confirm password'
-        focusField={focusField}
-        setFocusField={setFocusField}
-        handleChange={handleChange}
+          id='password'
+          placeholder='password'
+          focusField={focusField}
+          setFocusField={setFocusField}
+          handleChange={handleChange}
         />
-        <button disable={loading.toString()} 
-        type='submit'
-        className='bg-slate-700 text-white p-3 rounded-lg uppercase 
+        <PasswordInput
+          id='confirmPassword'
+          placeholder='confirm password'
+          focusField={focusField}
+          setFocusField={setFocusField}
+          handleChange={handleChange}
+        />
+        <button
+          disabled={loading}
+          type='submit'
+          className='bg-slate-700 text-white p-3 rounded-lg uppercase 
         hover:opacity-95 
-        disabled:placeholder-opacity-80'>
+        disabled:placeholder-opacity-80'
+        >
           {loading ? 'Loading...' : 'Sign Up'}
         </button>
         <OAuth />
@@ -123,23 +127,21 @@ const SignUp = () => {
       <div className='flex gap-2 mt-5'>
         <p>Have an account?</p>
         <Link to='/sign-in'>
-          <span className='text-Blue'>
-            Sign In
-          </span>
+          <span className='text-Blue'>Sign In</span>
         </Link>
       </div>
 
-      <TimeoutElement 
+      <TimeoutElement
         tagName='p'
         classNames='text-red-500 mt-5'
-        valueState={error}
+        valueState={errorMsg}
         valueStateMatchWhenNotEmpty={true}
-        setValueState={setError}
+        setValueState={setErrorMsg}
         valueStateDefaultValue={''}
-        text={error}
+        text={errorMsg}
       />
     </div>
   );
-}
+};
 
 export default SignUp;

@@ -36,7 +36,7 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
       if (!email) throw new Error('You must provide your email id!');
 
       const url = '/api/auth/forgot-password' as const;
-      const postBody = { emailId };
+      const postBody = { emailId: email };
 
       const data = await postApi(url, postBody);
 

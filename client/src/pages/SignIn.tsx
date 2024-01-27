@@ -13,6 +13,9 @@ import OAuth from '@/components/OAuth';
 import ForgotPassword from '@/components/ForgotPassword';
 import PasswordInput from '@/components/PasswordInput';
 import type { RootState } from '@/redux/store';
+import { postApi } from '@/apiCalls/fetchHook';
+import { UserSchema } from '@/zod-schemas/apiSchemas';
+import { useMutation } from '@tanstack/react-query';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -32,39 +35,33 @@ const SignIn = () => {
       ...formData,
       [e.target.id]: e.target.value,
     });
-    // console.log(e.target.id, ':', e.target.value);
   };
+
+  const { mutate: mutateSignin } = useMutation({
+    mutationFn: async () => {
+      const url = '/api/auth/signin';
+      const postBody = {
+        email: formData.email,
+        password: formData.password,
+      };
+      const data = await postApi(url, postBody);
+      const parse = UserSchema.parse(data);
+      return parse;
+    },
+    onError: (error) => {
+      dispatch(signInFailure(error.message));
+      setNewTimeout();
+    },
+    onSuccess: (data) => {
+      dispatch(signInSuccess(data));
+      navigate('/');
+    },
+  });
 
   const handleSubmit = async (e: ChangeEvent<ElementRef<'form'>>) => {
     e.preventDefault();
-
-    try {
-      dispatch(signInStart());
-
-      const res = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(signInFailure(data.message));
-        setNewTimeout();
-        return;
-      }
-
-      dispatch(signInSuccess(data));
-      navigate('/');
-    } catch (error) {
-      dispatch(signInFailure(error));
-      setNewTimeout();
-    }
+    dispatch(signInStart());
+    mutateSignin();
   };
 
   const setNewTimeout = () => {

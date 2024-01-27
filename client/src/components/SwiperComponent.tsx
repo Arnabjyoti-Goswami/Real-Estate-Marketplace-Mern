@@ -9,8 +9,8 @@ import { useRef, useEffect } from 'react';
 
 interface SwiperComponentProps {
   listToMap: string[];
-  keyDownElement: 'body' | 'swiper';
-  classNames: string;
+  keyDownElement?: 'body' | 'swiper';
+  classNames?: string;
 }
 
 const SwiperComponent = ({

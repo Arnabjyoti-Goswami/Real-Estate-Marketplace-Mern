@@ -4,16 +4,18 @@ import errorHandler from '@utils/errorHandler';
 import asyncHandler from '@utils/asyncWrapper';
 
 type reqBody = {
-  userId: string,
-  oldPassword: string,
-}
+  userId: string;
+  oldPassword: string;
+};
 
 const deleteUser = asyncHandler(async (req, res, next) => {
-  const { oldPassword, userId } : reqBody = req.body;
+  const { oldPassword, userId }: reqBody = req.body;
 
-  if (userId !== req.params.id) return next(errorHandler(401, 'You can only delete your own account!'));
+  if (userId !== req.params.id)
+    return next(errorHandler(401, 'You can only delete your own account!'));
 
-  if (!oldPassword) return next(errorHandler(401, 'You must provide your old password!'));
+  if (!oldPassword)
+    return next(errorHandler(401, 'You must provide your old password!'));
 
   const user = await User.findById(req.params.id);
 
@@ -28,9 +30,9 @@ const deleteUser = asyncHandler(async (req, res, next) => {
   res.clearCookie('refresh_token');
 
   res.status(200).json({
-    message: 'User deleted successfully!' 
+    success: true,
+    message: 'User deleted successfully!',
   });
-  
 });
 
 export default deleteUser;

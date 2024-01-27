@@ -3,71 +3,75 @@ import { useState, useEffect } from 'react';
 
 import SwiperComponent from '@/components/SwiperComponent';
 import ListingCard from '@/components/ListingCard';
+import { ListingsSchema } from '@/zod-schemas/apiSchemas';
+import { useQuery } from '@tanstack/react-query';
+import { getApi } from '@/apiCalls/fetchHook';
 
 const Home = () => {
-  const [offerListings, setOfferListings] = useState([]);
-  const [saleListings, setSaleListings] = useState([]);
-  const [rentListings, setRentListings] = useState([]);
-  const [swiperList, setSwiperList] = useState([]);
+  const [swiperList, setSwiperList] = useState<string[]>([]);
 
-  const fetchOfferListings = async () => {
-    try {
-      const res = await fetch('/api/listing/get?offer=true&limit=4');
-      const data = await res.json();
-
-      if (data.success === false) {
-        console.log(data.message);
-        return;
-      }
-
-      setOfferListings(data);
-
-      const fetchedSwiperList = data.map((listing) => {
+  const {
+    data: offerListings,
+    isSuccess: isSuccessOfferListings,
+    error: errorOfferListings,
+    isError: isErrorOfferListings,
+  } = useQuery({
+    queryKey: ['4offerListings'],
+    queryFn: async () => {
+      const url = '/api/listing/get?offer=true&limit=4' as const;
+      const data = await getApi(url);
+      const parse = ListingsSchema.parse(data);
+      return parse;
+    },
+  });
+  const {
+    data: rentListings,
+    error: errorRentListings,
+    isError: isErrorRentListings,
+  } = useQuery({
+    queryKey: ['4rentListings'],
+    queryFn: async () => {
+      const url = '/api/listing/get?type=rent&limit=4' as const;
+      const data = await getApi(url);
+      const parse = ListingsSchema.parse(data);
+      return parse;
+    },
+    enabled: !!offerListings,
+  });
+  const {
+    data: saleListings,
+    error: errorSaleListings,
+    isError: isErrorSaleListings,
+  } = useQuery({
+    queryKey: ['4saleListings'],
+    queryFn: async () => {
+      const url = '/api/listing/get?type=sale&limit=4' as const;
+      const data = await getApi(url);
+      const parse = ListingsSchema.parse(data);
+      return parse;
+    },
+    enabled: !!rentListings,
+  });
+  const fetch = () => {
+    if (isErrorOfferListings) {
+      console.log(errorOfferListings.message);
+    }
+    if (isErrorRentListings) {
+      console.log(errorRentListings.message);
+    }
+    if (isErrorSaleListings) {
+      console.log(errorSaleListings.message);
+    }
+    if (isSuccessOfferListings) {
+      const fetchedSwiperList = offerListings.map((listing) => {
         return listing.imageUrls[0];
       });
       setSwiperList(fetchedSwiperList);
-
-      fetchRentListings();
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  const fetchRentListings = async () => {
-    try {
-      const res = await fetch('/api/listing/get?type=rent&limit=4');
-      const data = await res.json();
-
-      if (data.success === false) {
-        console.log(data.message);
-        return;
-      }
-
-      setRentListings(data);
-      fetchSaleListings();
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  const fetchSaleListings = async () => {
-    try {
-      const res = await fetch('/api/listing/get?type=sale&limit=4');
-      const data = await res.json();
-
-      if (data.success === false) {
-        console.log(data.message);
-        return;
-      }
-
-      setSaleListings(data);
-    } catch (error) {
-      console.log(error.message);
     }
   };
 
   useEffect(() => {
-    fetchOfferListings();
+    fetch();
   }, []);
 
   console.log(swiperList);

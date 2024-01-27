@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ChangeEvent, ElementRef } from 'react';
+import type { ChangeEvent, ElementRef, Dispatch, SetStateAction } from 'react';
 
 import EyeIcon from '@/components/EyeIcon';
 
@@ -8,7 +8,7 @@ interface PasswordInputProps {
   placeholder: string;
   handleChange: (e: ChangeEvent<ElementRef<'input'>>) => void;
   focusField: string;
-  setFocusField: React.Dispatch<React.SetStateAction<string>>;
+  setFocusField: Dispatch<SetStateAction<string>>;
 }
 
 const PasswordInput = ({

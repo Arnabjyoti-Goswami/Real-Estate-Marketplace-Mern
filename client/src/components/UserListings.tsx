@@ -1,75 +1,90 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import useFetch from '../apiCalls/useFetch.js';
+import { useMutation, useQuery } from '@tanstack/react-query';
+
+import type { RootState } from '@/redux/store';
+import { deleteApi, getApi } from '@/apiCalls/fetchHook';
+import { ListingsSchema } from '@/zod-schemas/apiSchemas';
+import type { TListing, TUser } from 'zod-schemas/apiSchemas';
 
 const UserListings = () => {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser: user } = useSelector((state: RootState) => state.user);
+  const currentUser = user as TUser;
+
   const [showListings, setShowListings] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [userListings, setUserListings] = useState<TListing[]>([]);
   const [deleteListingError, setDeleteListingError] = useState('');
-  const [showListingsError, setShowListingsError] = useState('');
-  const [userListings, setUserListings] = useState([]);
 
-  const handleShowListing = async () => {
-    try {
-      setShowListingsError('');
-      setLoading(true);
-
-      const url = `/api/user/listings/${currentUser._id}`;
-      const data = await useFetch(url);
-
-      setUserListings(data);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      setShowListingsError(error.message);
-    }
+  const fetchUserListings = async () => {
+    const url = `/api/user/listings/${currentUser._id}` as const;
+    const data = await getApi(url);
+    const parse = ListingsSchema.parse(data);
+    return parse;
   };
 
+  const {
+    data: dataFetchListings,
+    isLoading: isLoadingFetchListings,
+    error: errorFetchListings,
+    isError: isErrorFetchListings,
+  } = useQuery({
+    queryFn: () => fetchUserListings(),
+    queryKey: ['showUserListings', currentUser._id],
+    enabled: showListings,
+  });
+  if (dataFetchListings) {
+    setUserListings(dataFetchListings);
+  }
+
   const navigate = useNavigate();
-  const navigateToListing = (id) => {
+  const navigateToListing = (id: string) => {
     navigate(`/listing/${id}`);
   };
 
-  const handleListingDelete = async (listingId) => {
-    try {
-      const fetchOptions = {
-        method: 'DELETE',
-      };
-      const url = `/api/listing/delete/${listingId}`;
-      await useFetch(url, fetchOptions);
+  const {
+    mutate: mutateDeleteListing,
+    error,
+    isError,
+  } = useMutation({
+    mutationFn: async (listingId: string) => {
+      const url = `/api/listing/delete/${listingId}` as const;
+      await deleteApi(url);
+    },
+  });
+  if (isError) setDeleteListingError(error.message);
 
-      setUserListings((prev) =>
-        prev.filter((listing) => listing._id !== listingId)
-      );
-    } catch (error) {
-      setDeleteListingError(error.message);
-    }
+  const handleListingDelete = async (listingId: string) => {
+    mutateDeleteListing(listingId);
+
+    setUserListings((prev) =>
+      prev.filter((listing) => listing._id !== listingId)
+    );
   };
 
   return (
     <>
       <button
         className='text-green-700 
-    w-[40%] mt-5 ml-[30%] py-3 px-5
-    rounded-lg uppercase
-    border border-slate-500
-    hover:shadow-lg hover:shadow-slate-300 hover:bg-slate-100/40
-    whitespace-nowrap font-medium mb-2'
+        w-[40%] mt-5 ml-[30%] py-3 px-5
+        rounded-lg uppercase
+        border border-slate-500
+        hover:shadow-lg hover:shadow-slate-300 hover:bg-slate-100/40
+        whitespace-nowrap font-medium mb-2'
         onClick={() => {
-          handleShowListing();
           setShowListings((prev) => !prev);
         }}
       >
         {showListings ? 'Hide Listings' : 'Show Listings'}
       </button>
-      {showListingsError && (
-        <p className='text-center text-red-700 mb-2'>{showListingsError}</p>
+      {isErrorFetchListings && (
+        <p className='text-center text-red-700 mb-2'>
+          {errorFetchListings.message}
+        </p>
       )}
       {showListings &&
-        !showListingsError &&
-        !loading &&
+        !isErrorFetchListings &&
+        !isLoadingFetchListings &&
         userListings.length === 0 && (
           <p className='text-center text-slate-700 mb-2'>
             You have no listings! Create a listing{' '}
@@ -91,7 +106,7 @@ const UserListings = () => {
               <p className='text-slate-700 text-center border-b-2 border-slate-300 mb-1'>
                 <span
                   className='font-semibold cursor-pointer
-              hover:underline truncate'
+                  hover:underline truncate'
                   onClick={() => navigateToListing(listing._id)}
                 >
                   {listing.name}
@@ -100,8 +115,8 @@ const UserListings = () => {
               <div className='flex justify-between items-center'>
                 <div
                   className='rounded-lg overflow-hidden
-              w-[300px] cursor-pointer 
-              hover:scale-105 transition-transform duration-300 ease-in-out'
+                  w-[300px] cursor-pointer 
+                  hover:scale-105 transition-transform duration-300 ease-in-out'
                 >
                   <img
                     src={listing.imageUrls[0]}
@@ -113,22 +128,22 @@ const UserListings = () => {
                 <div className='flex flex-col gap-2'>
                   <button
                     className='text-red-700 uppercase
-                border-2 border-red-500
-                bg-red-300 bg-opacity-60
-                hover:bg-opacity-30
-                hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-red-300
-                py-[1px] px-[4px] rounded-lg'
+                    border-2 border-red-500
+                    bg-red-300 bg-opacity-60
+                    hover:bg-opacity-30
+                    hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-red-300
+                    py-[1px] px-[4px] rounded-lg'
                     onClick={() => handleListingDelete(listing._id)}
                   >
                     Delete
                   </button>
                   <button
                     className='text-yellow-300 uppercase
-                border-2 border-yellow-500
-                bg-yellow-200 bg-opacity-30
-                hover:bg-opacity-10
-                hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-yellow-300/40
-                py-[1px] px-[4px] rounded-lg'
+                    border-2 border-yellow-500
+                    bg-yellow-200 bg-opacity-30
+                    hover:bg-opacity-10
+                    hover:scale-105 transition-transform duration-300 ease-in-out hover:shadow-md hover:shadow-yellow-300/40
+                    py-[1px] px-[4px] rounded-lg'
                     onClick={() => navigate(`/update-listing/${listing._id}`)}
                   >
                     Edit

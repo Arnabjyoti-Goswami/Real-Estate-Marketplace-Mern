@@ -21,10 +21,7 @@ type ListingFormProps =
       idRouteParam: string;
     };
 
-const ListingForm = ({
-  type = 'create',
-  idRouteParam = null,
-}: ListingFormProps) => {
+const ListingForm = ({ type, idRouteParam }: ListingFormProps) => {
   const navigate = useNavigate();
 
   const [errorMsg, setErrorMsg] = useState('');
@@ -183,7 +180,13 @@ const ListingForm = ({
 
       const promises = [];
       for (let i = 0; i < files.length; i++) {
-        promises.push(storeImage(files[i], setFileUploadProgressText));
+        promises.push(
+          storeImage({
+            type: 'multiple',
+            file: files[i],
+            setter: setFileUploadProgressText,
+          })
+        );
       }
 
       Promise.all(promises)

@@ -1,49 +1,51 @@
 import { useState, useEffect, useRef } from 'react';
+import type {
+  ChangeEvent,
+  Dispatch,
+  ElementRef,
+  FormEvent,
+  SetStateAction,
+} from 'react';
 import { Link } from 'react-router-dom';
-
+import { useMutation } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  updateUserSuccess,
-  deleteUserSuccess,
-} from '../redux/user/userSlice.js';
 
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import { app } from '../firebase.js';
+import { updateUserSuccess, deleteUserSuccess } from '@/redux/user/userSlice';
+import type { RootState } from '@/redux/store';
 
-import TimeoutElement from '../components/TimeoutElement.jsx';
-import getFileNameWithTime from '../utils/getFileNameWithTime.js';
-import PasswordInput from '../components/PasswordInput.jsx';
-import ForgotPassword from '../components/ForgotPassword.jsx';
-import UserListings from '../components/userListings.jsx';
-import useFetch from '../apiCalls/useFetch.js';
+import type { TUser } from '@/zod-schemas/apiSchemas';
+import { UserSchema, ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { getApi, postApi } from '@/apiCalls/fetchHook';
 
-const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
+import TimeoutElement from '@/components/TimeoutElement';
+import PasswordInput from '@/components/PasswordInput';
+import ForgotPassword from '@/components/ForgotPassword';
+import UserListings from '@/components/UserListings';
+import storeImage from '@/firebase/storeImage';
+
+interface FileUploadMessageProps {
+  percent: number;
+  error: string;
+  setError: Dispatch<SetStateAction<string>>;
+  setPercent: Dispatch<SetStateAction<number>>;
+}
+
+const FileUploadMessage = ({
+  percent,
+  error,
+  setError,
+  setPercent,
+}: FileUploadMessageProps) => {
   let message = null;
-  if (typeof error === 'object' && error) {
+
+  if (error) {
     message = (
-      <TimeoutElement
+      <TimeoutElement<string>
         tagName='span'
         classNames='text-red-700'
         valueState={error}
         setValueState={setError}
-        valueStateDefaultValue={null}
-        valueStateMatchWhenNotEmpty={true}
-        text={'File must be less than 2mb and an image!'}
-      />
-    );
-  } else if (typeof error === 'string' && error) {
-    message = (
-      <TimeoutElement
-        tagName='span'
-        classNames='text-red-700'
-        valueState={error}
-        setValueState={setError}
-        valueStateDefaultValue={null}
+        valueStateDefaultValue={''}
         valueStateMatchWhenNotEmpty={true}
         text={error}
       />
@@ -52,7 +54,7 @@ const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
     message = <span className='text-slate-700'>{`Uploading ${percent}%`}</span>;
   } else if (percent === 100) {
     message = (
-      <TimeoutElement
+      <TimeoutElement<number>
         tagName='span'
         classNames='text-green-700'
         valueState={percent}
@@ -70,7 +72,10 @@ const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
 const Profile = () => {
   const dispatch = useDispatch();
 
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser: user } = useSelector((state: RootState) => state.user);
+  const currentUser = user as TUser;
+
+  const fileRef = useRef<ElementRef<'input'>>(null);
 
   const [focusField, setFocusField] = useState('');
   const [formData, setFormData] = useState({
@@ -81,15 +86,13 @@ const Profile = () => {
     confirmPassword: '',
     avatar: currentUser.avatar,
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const fileRef = useRef(null);
-  const [file, setFile] = useState(undefined);
+  const [file, setFile] = useState<File>();
   const [fileUploadPercentage, setFileUploadPercentage] = useState(0);
-  const [fileUploadError, setFileUploadError] = useState(null);
+  const [fileUploadErrorMsg, setFileUploadErrorMsg] = useState('');
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<ElementRef<'input'>>) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
@@ -117,72 +120,69 @@ const Profile = () => {
 
   const passwordValidation = () => {
     let result = true;
-    const passwordRegex = /^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])|(?=.*\d)/;
+    const passwordRegex = /^(?=.*[!@#$%^&*()_+{}[\]:;<>,.?~\\/-])|(?=.*\d)/;
     if (
       formData.password.length < 8 ||
       !passwordRegex.test(formData.password)
     ) {
-      setError(
+      setErrorMsg(
         'Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.'
       );
-      setLoading(false);
       result = false;
     }
 
     if (formData.confirmPassword !== formData.password) {
-      setError('Passwords are not matching!');
-      setLoading(false);
+      setErrorMsg('Passwords are not matching!');
       result = false;
     }
 
     return result;
   };
 
-  const handleSubmit = async (e) => {
+  const {
+    mutate: mutateUpdateUser,
+    data: updatedUser,
+    isPending: isLoadingUpdateUser,
+  } = useMutation({
+    mutationFn: async (userId: string) => {
+      const url = `/api/user/update/${userId}` as const;
+      const postBody = {
+        username: formData.username,
+        email: formData.email,
+        oldPassword: formData.oldPassword,
+        password: formData.password,
+        avatar: formData.avatar,
+      };
+      const data = await postApi(url, postBody);
+      const parse = UserSchema.parse(data);
+      return parse;
+    },
+    onError: (error) => {
+      setErrorMsg(error.message);
+    },
+  });
+
+  const handleSubmit = async (e: FormEvent<ElementRef<'form'>>) => {
     e.preventDefault();
 
     const noChanges = checkNoChanges();
     if (noChanges) {
-      setError("Can't Update! No changes are made.");
+      setErrorMsg("Can't Update! No changes are made.");
       return;
     }
 
-    // If the user is changing the password, then perform checks on the new password. If checks failed, then return from this handleSubmit function.
     if (formData.password) {
       const passwordsValidated = passwordValidation();
       if (!passwordsValidated) {
         return;
       }
+    } else {
+      return;
     }
 
-    try {
-      setLoading(true);
-
-      const url = `/api/user/update/${currentUser._id}`;
-      const fetchOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          oldPassword: formData.oldPassword,
-          password: formData.password,
-          avatar: formData.avatar,
-        }),
-      };
-
-      const data = await useFetch(url, fetchOptions);
-
-      setLoading(false);
-      setError(null);
-      dispatch(updateUserSuccess(data));
-      setSuccessMsg('Profile updated successfully!');
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
+    mutateUpdateUser(currentUser._id);
+    dispatch(updateUserSuccess(updatedUser));
+    setSuccessMsg('Profile updated successfully!');
   };
 
   // Firebase storage rules:
@@ -210,100 +210,70 @@ const Profile = () => {
     }
   }, [file]);
 
-  const handleFileUpload = (file) => {
-    const storage = getStorage(app);
-    const filename = getFileNameWithTime(file.name);
-    const storageRef = ref(storage, filename);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFileUploadPercentage(Math.round(progress));
-      },
-      (error) => {
-        setFileUploadError(error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setFormData({
-            ...formData,
-            avatar: downloadURL,
-          });
-        });
-      }
-    );
+  const handleFileUpload = (file: File) => {
+    storeImage({
+      type: 'single',
+      file: file,
+      setter: setFileUploadPercentage,
+    })
+      .then((downloadUrl) => {
+        setFormData({ ...formData, avatar: downloadUrl });
+      })
+      .catch((error) => {
+        setFileUploadErrorMsg(error.message);
+      });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: ChangeEvent<ElementRef<'input'>>) => {
+    if (!e.target.files) return;
+
     const file = e.target.files[0];
     // These checks are also present in the firebase storage rules, so they are not really required. But doing them here too is more efficient as it doesn't waste time fully uploading the file to the storage and then checking if it satisfies the storage's rules.
     if (file.size > 2 * 1024 * 1024) {
-      setFileUploadError('File must be less than 2mb!');
+      setFileUploadErrorMsg('File must be less than 2mb!');
       return;
     }
     if (!file.type.startsWith('image/')) {
-      setFileUploadError('File must be an image!');
+      setFileUploadErrorMsg('File must be an image!');
       return;
     }
     setFile(file);
   };
 
-  const handleDeleteAccount = async (e) => {
-    setLoading(true);
-
-    try {
-      const url = `/api/user/delete/${currentUser._id}`;
-      const fetchOptions = {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          oldPassword: formData.oldPassword,
-        }),
-      };
-      await useFetch(url, fetchOptions);
-
-      setLoading(false);
-      setError(null);
+  const { mutate: mutateUserDelete } = useMutation({
+    mutationFn: async (userId: string) => {
+      const url = `/api/user/delete/${userId}` as const;
+      const postData = { oldPassword: formData.oldPassword };
+      await postApi(url, postData);
+    },
+    onError: (error) => {
+      setErrorMsg(error.message);
+    },
+    onSuccess: () => {
       dispatch(deleteUserSuccess());
       setSuccessMsg('Account deleted successfully!');
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
-  };
+    },
+  });
 
-  const handleSignOut = async (e) => {
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/signout', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await res.json();
-
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(false);
-      setError(null);
+  const { mutate: mutateUserSignout } = useMutation({
+    mutationFn: async () => {
+      const url = '/api/auth/signout' as const;
+      const data = await getApi(url);
+      const parse = ForgotPasswordSchema.parse(data);
+      return parse;
+    },
+    onSuccess: () => {
       dispatch(deleteUserSuccess());
       setSuccessMsg('Signed out successfully!');
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
+    },
+  });
+
+  const handleDeleteAccount = async () => {
+    mutateUserDelete(currentUser._id);
+  };
+
+  const handleSignOut = async () => {
+    mutateUserSignout();
   };
 
   return (
@@ -312,7 +282,7 @@ const Profile = () => {
 
       <form
         className='flex flex-col gap-4
-      mb-2'
+        mb-2'
         onSubmit={handleSubmit}
       >
         <input
@@ -324,7 +294,7 @@ const Profile = () => {
         />
         <img
           onClick={() => {
-            fileRef.current.click();
+            fileRef.current && fileRef.current.click();
           }}
           src={formData.avatar}
           id='avatar'
@@ -332,8 +302,8 @@ const Profile = () => {
           className='rounded-full h-24 w-24 object-cover cursor-pointer mt-2 self-center'
         />
         <FileUploadMessage
-          error={fileUploadError}
-          setError={setFileUploadError}
+          error={fileUploadErrorMsg}
+          setError={setFileUploadErrorMsg}
           percent={fileUploadPercentage}
           setPercent={setFileUploadPercentage}
         />
@@ -385,19 +355,19 @@ const Profile = () => {
           handleChange={handleChange}
         />
         <button
-          disable={loading.toString()}
+          disabled={isLoadingUpdateUser}
           type='submit'
           className='bg-slate-700 text-white p-3 rounded-lg uppercase 
-        hover:opacity-95
-        disabled:placeholder-opacity-80'
+          hover:opacity-95
+          disabled:placeholder-opacity-80'
         >
-          {loading ? 'Loading...' : 'Update'}
+          {isLoadingUpdateUser ? 'Loading...' : 'Update'}
         </button>
         <button
           type='button'
           className='bg-green-700 p-3 rounded-lg 
-        uppercase text-center text-white
-        hover:opacity-90'
+          uppercase text-center text-white
+          hover:opacity-90'
         >
           <Link to='/create-listing'>Create Listing</Link>
         </button>
@@ -417,17 +387,17 @@ const Profile = () => {
         </span>
       </div>
 
-      <TimeoutElement
+      <TimeoutElement<string>
         tagName='p'
         classNames='text-red-700 mt-5'
-        valueState={error}
-        setValueState={setError}
+        valueState={errorMsg}
+        setValueState={setErrorMsg}
         valueStateDefaultValue={''}
         valueStateMatchWhenNotEmpty={true}
-        text={error}
+        text={errorMsg}
       />
 
-      <TimeoutElement
+      <TimeoutElement<string>
         tagName='p'
         classNames='text-green-700 mt-5'
         valueState={successMsg}

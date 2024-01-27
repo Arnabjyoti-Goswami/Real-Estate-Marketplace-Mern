@@ -4,15 +4,23 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage';
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch as TDispatch, SetStateAction as TSetState } from 'react';
 
 import { app } from '@/firebase/firebaseConfig';
 import getFileNameWithTime from '@/utils/getFileNameWithTime';
 
-const storeImage = async (
-  file: File,
-  setFileUploadProgressText: Dispatch<SetStateAction<string>>
-) => {
+type StoreImageProps =
+  | {
+      type: 'multiple';
+      file: File;
+      setter: TDispatch<TSetState<string>>;
+    }
+  | {
+      type: 'single';
+      file: File;
+      setter: TDispatch<TSetState<number>>;
+    };
+const storeImage = async ({ type, file, setter }: StoreImageProps) => {
   return new Promise<string>((resolve, reject) => {
     const storage = getStorage(app);
     const filename = getFileNameWithTime(file.name);
@@ -24,9 +32,11 @@ const storeImage = async (
       (snapshot) => {
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFileUploadProgressText(
-          `Uploading image (${filename}): ${progress.toFixed(2)}% done`
-        );
+        if (type === 'multiple') {
+          setter(`Uploading image (${filename}): ${progress.toFixed(2)}% done`);
+        } else {
+          setter(Number(progress.toFixed(2)));
+        }
       },
       (error) => {
         reject(error);

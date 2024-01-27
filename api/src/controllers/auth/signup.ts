@@ -4,9 +4,9 @@ import env from '@utils/validateEnv';
 import asyncHandler from '@src/utils/asyncWrapper';
 
 type reqBody = {
-  username: string,
-  email: string,
-  password: string,
+  username: string;
+  email: string;
+  password: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,17 +15,17 @@ const signup = asyncHandler(async (req, res, next) => {
 
   const hashedPassword = bcryptjs.hashSync(password, env.NUM_SALT);
 
-  const newUser = new User({ 
-    username, 
-    email, 
+  const newUser = new User({
+    username,
+    email,
     password: hashedPassword,
   });
 
   await newUser.save();
   res.status(201).json({
+    success: true,
     message: 'User created successfully!',
   });
-
 });
 
 export default signup;
