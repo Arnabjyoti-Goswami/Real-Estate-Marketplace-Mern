@@ -1,54 +1,39 @@
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import { app } from '../firebase';
+import { useState } from 'react';
+import type { ChangeEvent, ElementRef, FormEvent } from 'react';
 
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import getFileNameWithTime from '../utils/getFileNameWithTime';
-import deleteFileFromFirebase from '../utils/deleteFileFromFirebase.js';
-import useFetch from '../hooks/useFetch.js';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-const ListingForm = ({ type = 'create', idRouteParam = null }) => {
-  const fetchListingData = async () => {
-    try {
-      setError('');
+import storeImage from '@/firebase/storeImage';
+import deleteFileFromFirebase from '@/firebase/deleteFile';
 
-      const res = await fetch(`/api/listing/get/${idRouteParam}`);
-      const data = await res.json();
+import { getApi, postApi } from '@/apiCalls/fetchHook';
+import { ListingSchema, TPostBodyListing } from '@/zod-schemas/apiSchemas';
 
-      if (data.success === false) {
-        setError(data.message);
-        return;
-      }
-
-      setError('');
-      setFormData(data);
-    } catch (error) {
-      setError(error.message);
+type ListingFormProps =
+  | {
+      type: 'create';
+      idRouteParam: null;
     }
-  };
+  | {
+      type: 'update';
+      idRouteParam: string;
+    };
 
-  useEffect(() => {
-    if (type === 'update' && idRouteParam) {
-      fetchListingData();
-    }
-  }, []);
-
+const ListingForm = ({
+  type = 'create',
+  idRouteParam = null,
+}: ListingFormProps) => {
   const navigate = useNavigate();
 
+  const [errorMsg, setErrorMsg] = useState('');
   const [fileUploadError, setFileUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [fileUploadProgressText, setFileUploadProgressText] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
 
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TPostBodyListing>({
     imageUrls: [],
     name: '',
     description: '',
@@ -63,7 +48,35 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
     furnished: false,
   });
 
-  const handleChange = (e) => {
+  const fetchListingData = async () => {
+    const url = `/api/listing/get/${idRouteParam}` as const;
+    const listingData = getApi(url);
+    const parse = ListingSchema.parse(listingData);
+    return parse;
+  };
+
+  const {
+    data: listingFetchRes,
+    error: listingFetchErr,
+    isError: islistingFetchErr,
+    isSuccess: isListingFetchSuccess,
+  } = useQuery({
+    queryFn: () => fetchListingData(),
+    queryKey: ['updateListingDataFetch', idRouteParam],
+    enabled: type === 'update',
+  });
+
+  if (islistingFetchErr) {
+    setErrorMsg(listingFetchErr.message);
+  }
+
+  if (isListingFetchSuccess) {
+    setFormData(listingFetchRes);
+  }
+
+  const handleChange = (
+    e: ChangeEvent<ElementRef<'input'>> | ChangeEvent<ElementRef<'textarea'>>
+  ) => {
     if (e.target.id === 'sale' || e.target.id === 'rent') {
       setFormData({
         ...formData,
@@ -76,7 +89,7 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
     ) {
       setFormData({
         ...formData,
-        [e.target.id]: e.target.checked,
+        [e.target.id]: (e.target as HTMLInputElement).checked,
       });
     } else if (
       e.target.type === 'number' ||
@@ -88,64 +101,62 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
         [e.target.id]: e.target.value,
       });
     }
-    // console.log(formData);
   };
 
   const validateFormData = () => {
     if (formData.imageUrls.length < 1) {
-      setError('You must upload at least one image');
+      setErrorMsg('You must upload at least one image');
       return false;
     }
     if (+formData.regularPrice < +formData.discountPrice) {
-      setError('Discounted price must be lower than regular price');
+      setErrorMsg('Discounted price must be lower than regular price');
       return false;
     }
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const validationSuccess = validateFormData();
-      if (!validationSuccess) return;
-
-      setLoading(true);
-      setError('');
-
+  const { data, mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (formData: TPostBodyListing) => {
       let url = '/api/listing/create';
       if (type === 'update') {
         url = `/api/listing/update/${idRouteParam}`;
       }
 
-      const fetchOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      };
+      const data = postApi(url, formData);
 
-      const data = await useFetch(url, fetchOptions);
+      const parse = ListingSchema.parse(data);
+      return parse;
+    },
+  });
 
-      setLoading(false);
+  if (isError) {
+    setErrorMsg(error.message);
+  }
+
+  const handleSubmit = async (e: FormEvent<ElementRef<'form'>>) => {
+    e.preventDefault();
+
+    const validationSuccess = validateFormData();
+    if (!validationSuccess) return;
+    mutate(formData);
+    if (data) {
       navigate(`/listing/${data._id}`);
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: ChangeEvent<ElementRef<'input'>>) => {
     const files = e.target.files;
+
+    if (!files) return;
+
     const filesArray = Array.from(files);
 
-    const validFiles = [];
+    const validFiles: File[] = [];
 
     filesArray.forEach((file) => {
       if (file.size > 2 * 1024 * 1024) {
         setFileUploadError('Each file must be less than 2mb!');
-        return; // skip this file
+        return;
       }
       if (!file.type.startsWith('image/')) {
         setFileUploadError('Each file must be an image!');
@@ -165,14 +176,14 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
     setFiles((prevFiles) => [...prevFiles, ...validFiles]);
   };
 
-  const handleImageSubmit = (e) => {
+  const handleImageSubmit = () => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
       setUploading(true);
       setFileUploadError('');
 
       const promises = [];
       for (let i = 0; i < files.length; i++) {
-        promises.push(storeImage(files[i]));
+        promises.push(storeImage(files[i], setFileUploadProgressText));
       }
 
       Promise.all(promises)
@@ -192,35 +203,6 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
       setFileUploadError('You can only upload 6 images per listing');
       setUploading(false);
     }
-  };
-
-  const [fileUploadProgressText, setFileUploadProgressText] = useState('');
-
-  const storeImage = async (file: File) => {
-    return new Promise((resolve, reject) => {
-      const storage = getStorage(app);
-      const filename = getFileNameWithTime(file.name);
-      const storageRef = ref(storage, filename);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setFileUploadProgressText(
-            `Uploading image (${filename}): ${progress.toFixed(2)}% done`
-          );
-        },
-        (error) => {
-          reject(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
-          });
-        }
-      );
-    });
   };
 
   const handleRemoveImage = (url: string, index: number) => {
@@ -362,7 +344,7 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
                 min='0'
                 required
                 className='py-2 pl-2 border border-gray-300 rounded-lg
-              no-spinners'
+                no-spinners'
                 value={formData.regularPrice}
                 onChange={handleChange}
               />
@@ -381,7 +363,7 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
                   min='0'
                   required
                   className='py-2 pl-2 border border-gray-300 rounded-lg
-              no-spinners'
+                  no-spinners'
                   value={formData.discountPrice}
                   onChange={handleChange}
                 />
@@ -397,7 +379,7 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
         </div>
         <div
           className='flex-1
-        flex flex-col gap-4'
+          flex flex-col gap-4'
         >
           <p className='font-semibold'>
             Images:
@@ -416,9 +398,9 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
             />
             <button
               className='p-3 text-green-700 border border-green-700 rounded uppercase
-            bg-green-200 hover:bg-green-300
-            hover:shadow-lg hover:shadow-slate-300
-            disabled:opacity-80'
+              bg-green-200 hover:bg-green-300
+              hover:shadow-lg hover:shadow-slate-300
+              disabled:opacity-80'
               type='button'
               onClick={handleImageSubmit}
               disabled={uploading}
@@ -447,19 +429,19 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
                   type='button'
                   onClick={() => handleRemoveImage(url, index)}
                   className='p-3 text-red-700 rounded-lg uppercase 
-              hover:opacity-75'
+                  hover:opacity-75'
                 >
                   Delete
                 </button>
               </div>
             ))}
           <button
-            disabled={loading || uploading}
+            disabled={isPending || uploading}
             className='p-3 bg-slate-700 text-white rounded-lg 
-          uppercase hover:opacity-95 disabled:opacity-80'
+            uppercase hover:opacity-95 disabled:opacity-80'
             type='submit'
           >
-            {loading
+            {isPending
               ? type === 'update'
                 ? 'Updating'
                 : 'Creating...'
@@ -467,7 +449,7 @@ const ListingForm = ({ type = 'create', idRouteParam = null }) => {
               ? 'Update Listing'
               : 'Create Listing'}
           </button>
-          {error && <p className='text-red-700 text-sm'>{error}</p>}
+          {errorMsg && <p className='text-red-700 text-sm'>{errorMsg}</p>}
         </div>
       </form>
     </main>

@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 
 import TimeoutElement from '@/components/TimeoutElement';
 import { ForgotPasswordSchema } from '@/zod-schemas/apiSchemas';
+import { postApi } from '@/apiCalls/fetchHook';
 
 interface ForgotPasswordProps {
   emailId: string;
@@ -36,18 +36,11 @@ const ForgotPassword = ({ emailId }: ForgotPasswordProps) => {
       if (!email) throw new Error('You must provide your email id!');
 
       const url = '/api/auth/forgot-password' as const;
+      const postBody = { emailId };
 
-      const data = axios
-        .post(url, email)
-        .then((response) => {
-          return response.data;
-        })
-        .catch((error) => {
-          if ('message' in error) throw new Error(error.message);
-        });
+      const data = await postApi(url, postBody);
 
       const parse = ForgotPasswordSchema.parse(data);
-
       return parse;
     },
   });

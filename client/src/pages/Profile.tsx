@@ -2,13 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUserSuccess, deleteUserSuccess } from '../redux/user/userSlice.js';
+import {
+  updateUserSuccess,
+  deleteUserSuccess,
+} from '../redux/user/userSlice.js';
 
-import { 
-  getDownloadURL, 
-  getStorage, 
-  ref, 
-  uploadBytesResumable 
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
 } from 'firebase/storage';
 import { app } from '../firebase.js';
 
@@ -17,61 +20,57 @@ import getFileNameWithTime from '../utils/getFileNameWithTime.js';
 import PasswordInput from '../components/PasswordInput.jsx';
 import ForgotPassword from '../components/ForgotPassword.jsx';
 import UserListings from '../components/userListings.jsx';
-import useFetch from '../hooks/useFetch.js';
+import useFetch from '../apiCalls/useFetch.js';
 
 const FileUploadMessage = ({ percent, error, setError, setPercent }) => {
   let message = null;
   if (typeof error === 'object' && error) {
-    message = 
-    <TimeoutElement
-    tagName='span'
-    classNames='text-red-700'
-    valueState={error}
-    setValueState={setError}
-    valueStateDefaultValue={null}
-    valueStateMatchWhenNotEmpty={true}
-    text={'File must be less than 2mb and an image!'}
-    />;
+    message = (
+      <TimeoutElement
+        tagName='span'
+        classNames='text-red-700'
+        valueState={error}
+        setValueState={setError}
+        valueStateDefaultValue={null}
+        valueStateMatchWhenNotEmpty={true}
+        text={'File must be less than 2mb and an image!'}
+      />
+    );
   } else if (typeof error === 'string' && error) {
-    message = 
-    <TimeoutElement
-    tagName='span'
-    classNames='text-red-700'
-    valueState={error}
-    setValueState={setError}
-    valueStateDefaultValue={null}
-    valueStateMatchWhenNotEmpty={true}
-    text={error}
-    />;
+    message = (
+      <TimeoutElement
+        tagName='span'
+        classNames='text-red-700'
+        valueState={error}
+        setValueState={setError}
+        valueStateDefaultValue={null}
+        valueStateMatchWhenNotEmpty={true}
+        text={error}
+      />
+    );
   } else if (percent > 0 && percent < 100) {
-    message = 
-    <span className='text-slate-700'>
-      {`Uploading ${percent}%`}
-    </span>;
+    message = <span className='text-slate-700'>{`Uploading ${percent}%`}</span>;
   } else if (percent === 100) {
-    message = 
-    <TimeoutElement
-    tagName='span'
-    classNames='text-green-700'
-    valueState={percent}
-    valueStateValueToMatch={100}
-    setValueState={setPercent}
-    valueStateDefaultValue={0}
-    text='Image successfully uploaded!'
-    />
+    message = (
+      <TimeoutElement
+        tagName='span'
+        classNames='text-green-700'
+        valueState={percent}
+        valueStateValueToMatch={100}
+        setValueState={setPercent}
+        valueStateDefaultValue={0}
+        text='Image successfully uploaded!'
+      />
+    );
   }
 
-  return (
-    <p className='text-center'>
-      {message}
-    </p>
-  );
+  return <p className='text-center'>{message}</p>;
 };
 
 const Profile = () => {
   const dispatch = useDispatch();
 
-  const { currentUser } = useSelector(state => state.user);
+  const { currentUser } = useSelector((state) => state.user);
 
   const [focusField, setFocusField] = useState('');
   const [formData, setFormData] = useState({
@@ -86,7 +85,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const fileRef = useRef(null);
-  const [file, setFile ] = useState(undefined);
+  const [file, setFile] = useState(undefined);
   const [fileUploadPercentage, setFileUploadPercentage] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(null);
 
@@ -99,10 +98,18 @@ const Profile = () => {
   };
 
   const checkNoChanges = () => {
-    const noPasswordChange = formData.password === formData.oldPassword && formData.confirmPassword === formData.oldPassword;
-    const noNewPassword = formData.password === '' && formData.confirmPassword === '';
+    const noPasswordChange =
+      formData.password === formData.oldPassword &&
+      formData.confirmPassword === formData.oldPassword;
+    const noNewPassword =
+      formData.password === '' && formData.confirmPassword === '';
     const passwordUnchanged = noPasswordChange || noNewPassword;
-    if (formData.username === currentUser.username && formData.email === currentUser.email && formData.avatar === currentUser.avatar && passwordUnchanged) {
+    if (
+      formData.username === currentUser.username &&
+      formData.email === currentUser.email &&
+      formData.avatar === currentUser.avatar &&
+      passwordUnchanged
+    ) {
       return true;
     }
     return false;
@@ -111,13 +118,18 @@ const Profile = () => {
   const passwordValidation = () => {
     let result = true;
     const passwordRegex = /^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])|(?=.*\d)/;
-    if (formData.password.length < 8 || !passwordRegex.test(formData.password)) {
-      setError('Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.');
+    if (
+      formData.password.length < 8 ||
+      !passwordRegex.test(formData.password)
+    ) {
+      setError(
+        'Password must be a minimum of 8 characters in length, and contain at least 1 special character or a number.'
+      );
       setLoading(false);
       result = false;
     }
 
-    if(formData.confirmPassword !== formData.password) {
+    if (formData.confirmPassword !== formData.password) {
       setError('Passwords are not matching!');
       setLoading(false);
       result = false;
@@ -148,7 +160,7 @@ const Profile = () => {
 
       const url = `/api/user/update/${currentUser._id}`;
       const fetchOptions = {
-        method:'POST',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -167,8 +179,7 @@ const Profile = () => {
       setError(null);
       dispatch(updateUserSuccess(data));
       setSuccessMsg('Profile updated successfully!');
-    }
-    catch (error) {
+    } catch (error) {
       setLoading(false);
       setError(error.message);
     }
@@ -208,20 +219,21 @@ const Profile = () => {
     uploadTask.on(
       'state_changed',
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setFileUploadPercentage(Math.round(progress));
       },
       (error) => {
         setFileUploadError(error);
       },
       () => {
-        getDownloadURL(uploadTask.snapshot.ref).then( (downloadURL) => {
-          setFormData({ 
-            ...formData, 
-            avatar: downloadURL 
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setFormData({
+            ...formData,
+            avatar: downloadURL,
           });
         });
-      },
+      }
     );
   };
 
@@ -259,7 +271,6 @@ const Profile = () => {
       setError(null);
       dispatch(deleteUserSuccess());
       setSuccessMsg('Account deleted successfully!');
-
     } catch (error) {
       setLoading(false);
       setError(error.message);
@@ -279,7 +290,7 @@ const Profile = () => {
 
       const data = await res.json();
 
-      if(data.success === false)  {
+      if (data.success === false) {
         setError(data.message);
         setLoading(false);
         return;
@@ -289,7 +300,6 @@ const Profile = () => {
       setError(null);
       dispatch(deleteUserSuccess());
       setSuccessMsg('Signed out successfully!');
-
     } catch (error) {
       setLoading(false);
       setError(error.message);
@@ -298,124 +308,133 @@ const Profile = () => {
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
-      <h1 className='text-3xl text-center font-semibold my-7'>
-        Profile
-      </h1>
+      <h1 className='text-3xl text-center font-semibold my-7'>Profile</h1>
 
-      <form className='flex flex-col gap-4
-      mb-2' 
-      onSubmit={handleSubmit}>
-        <input accept='image/*'
-        type='file' 
-        ref={fileRef} 
-        hidden 
-        onChange={handleFileChange}
+      <form
+        className='flex flex-col gap-4
+      mb-2'
+        onSubmit={handleSubmit}
+      >
+        <input
+          accept='image/*'
+          type='file'
+          ref={fileRef}
+          hidden
+          onChange={handleFileChange}
         />
-        <img onClick={ () => {
-          fileRef.current.click();
-        } }
-        src={formData.avatar}
-        id='avatar'
-        alt='profile'
-        className='rounded-full h-24 w-24 object-cover cursor-pointer mt-2 self-center' />
-        <FileUploadMessage 
-        error={fileUploadError}
-        setError={setFileUploadError}
-        percent={fileUploadPercentage}
-        setPercent={setFileUploadPercentage}
+        <img
+          onClick={() => {
+            fileRef.current.click();
+          }}
+          src={formData.avatar}
+          id='avatar'
+          alt='profile'
+          className='rounded-full h-24 w-24 object-cover cursor-pointer mt-2 self-center'
         />
-        <input type='text'
-        value={formData.username} 
-        placeholder='username' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='username' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusField('');
-        } }/>
-        <input type='email'
-        value={formData.email}
-        placeholder='email' 
-        className='border p-3 rounded-lg
-        focus:bg-gray-100 focus:border-slate-700 focus:outline-none' 
-        id='email' 
-        onChange={handleChange}
-        required
-        onClick={ () => {
-          setFocusField('');
-        } }/>
-        <PasswordInput
-        id='oldPassword'
-        placeholder='old password'
-        focusField={focusField}
-        setFocusField={setFocusField}
-        handleChange={handleChange}
+        <FileUploadMessage
+          error={fileUploadError}
+          setError={setFileUploadError}
+          percent={fileUploadPercentage}
+          setPercent={setFileUploadPercentage}
         />
-        <PasswordInput
-        id='password'
-        placeholder='new password'
-        focusField={focusField}
-        setFocusField={setFocusField}
-        handleChange={handleChange}
+        <input
+          type='text'
+          value={formData.username}
+          placeholder='username'
+          className='border p-3 rounded-lg
+        focus:bg-gray-100 focus:border-slate-700 focus:outline-none'
+          id='username'
+          onChange={handleChange}
+          required
+          onClick={() => {
+            setFocusField('');
+          }}
+        />
+        <input
+          type='email'
+          value={formData.email}
+          placeholder='email'
+          className='border p-3 rounded-lg
+        focus:bg-gray-100 focus:border-slate-700 focus:outline-none'
+          id='email'
+          onChange={handleChange}
+          required
+          onClick={() => {
+            setFocusField('');
+          }}
         />
         <PasswordInput
-        id='confirmPassword'
-        placeholder='confirm new password'
-        focusField={focusField}
-        setFocusField={setFocusField}
-        handleChange={handleChange}
+          id='oldPassword'
+          placeholder='old password'
+          focusField={focusField}
+          setFocusField={setFocusField}
+          handleChange={handleChange}
         />
-        <button disable={loading.toString()} 
-        type='submit'
-        className='bg-slate-700 text-white p-3 rounded-lg uppercase 
+        <PasswordInput
+          id='password'
+          placeholder='new password'
+          focusField={focusField}
+          setFocusField={setFocusField}
+          handleChange={handleChange}
+        />
+        <PasswordInput
+          id='confirmPassword'
+          placeholder='confirm new password'
+          focusField={focusField}
+          setFocusField={setFocusField}
+          handleChange={handleChange}
+        />
+        <button
+          disable={loading.toString()}
+          type='submit'
+          className='bg-slate-700 text-white p-3 rounded-lg uppercase 
         hover:opacity-95
-        disabled:placeholder-opacity-80'>
+        disabled:placeholder-opacity-80'
+        >
           {loading ? 'Loading...' : 'Update'}
         </button>
-        <button type='button'
-        className='bg-green-700 p-3 rounded-lg 
+        <button
+          type='button'
+          className='bg-green-700 p-3 rounded-lg 
         uppercase text-center text-white
         hover:opacity-90'
         >
-          <Link to='/create-listing'>
-            Create Listing
-          </Link>
+          <Link to='/create-listing'>Create Listing</Link>
         </button>
       </form>
-      
+
       <ForgotPassword emailId={formData.email} />
-      
+
       <div className='flex justify-between mt-3 font-medium'>
-        <span onClick={handleDeleteAccount}
-        className='text-red-700 cursor-pointer'>
+        <span
+          onClick={handleDeleteAccount}
+          className='text-red-700 cursor-pointer'
+        >
           Delete account
         </span>
-        <span onClick={handleSignOut}
-        className='text-red-700 cursor-pointer'>
+        <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>
           Sign out
         </span>
       </div>
 
       <TimeoutElement
-      tagName='p'
-      classNames='text-red-700 mt-5'
-      valueState={error}
-      setValueState={setError}
-      valueStateDefaultValue={''}
-      valueStateMatchWhenNotEmpty={true}
-      text={error}
+        tagName='p'
+        classNames='text-red-700 mt-5'
+        valueState={error}
+        setValueState={setError}
+        valueStateDefaultValue={''}
+        valueStateMatchWhenNotEmpty={true}
+        text={error}
       />
 
       <TimeoutElement
-      tagName='p'
-      classNames='text-green-700 mt-5'
-      valueState={successMsg}
-      valueStateMatchWhenNotEmpty={true}
-      setValueState={setSuccessMsg}
-      valueStateDefaultValue={''}
-      text={successMsg}
+        tagName='p'
+        classNames='text-green-700 mt-5'
+        valueState={successMsg}
+        valueStateMatchWhenNotEmpty={true}
+        setValueState={setSuccessMsg}
+        valueStateDefaultValue={''}
+        text={successMsg}
       />
 
       <UserListings />

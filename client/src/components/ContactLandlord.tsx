@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
-import fetchHook from '@/hooks/fetchHook';
+import { getApi } from '@/apiCalls/fetchHook';
 import type { TUser, TListing } from '@/zod-schemas/apiSchemas';
 import { UserSchema } from '@/zod-schemas/apiSchemas';
 import { RootState } from '@/redux/store';
@@ -23,7 +23,7 @@ const ContactOptions = ({ listing }: ContactOptionsProps) => {
 
   const fetchLandlord = async () => {
     const url = `/api/user/${listing.userRef}` as const;
-    const landlordData = await fetchHook(url);
+    const landlordData = await getApi(url);
     const parse = UserSchema.parse(landlordData);
     return parse;
   };

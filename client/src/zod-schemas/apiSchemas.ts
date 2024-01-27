@@ -39,4 +39,14 @@ export type TForgotPassword = z.infer<typeof ForgotPasswordSchema>;
 
 type FetchFailure = TForgotPassword;
 
-export type TFetchHook = FetchFailure | TUser;
+export type TGetApiRes = FetchFailure | TUser | TListing;
+
+type TPostBodyForgotPassword = {
+  emailId: string;
+};
+
+export type TPostBodyListing = Omit<Omit<TListing, '_id'>, 'userRef'>;
+
+export type TPostBody = TPostBodyForgotPassword | TPostBodyListing;
+
+export type TPostApiRes = FetchFailure | TUser | TListing;
