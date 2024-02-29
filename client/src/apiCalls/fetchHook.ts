@@ -12,7 +12,7 @@ export const getApi = async (url: string) => {
 
   if ('message' in data && data.success === false) {
     if (data.message === 'Access token unauthorized!') {
-      await fetch('/api/auth/refresh-token');
+      await axios.get('/api/auth/refresh-token');
 
       const res_again = await axios.get(url);
       const data_again: TGetApiRes = res_again.data;
@@ -36,7 +36,7 @@ export const postApi = async (url: string, postBody: TPostBody) => {
 
   if ('message' in data && data.success === false) {
     if (data.message === 'Access token unauthorized!') {
-      await fetch('/api/auth/refresh-token');
+      await axios.get('/api/auth/refresh-token');
 
       const res_again = await axios.post(url, postBody);
       const data_again: TPostApiRes = res_again.data;
@@ -60,7 +60,7 @@ export const deleteApi = async (url: string) => {
 
   if ('message' in data && data.success === false) {
     if (data.message === 'Access token unauthorized!') {
-      await fetch('/api/auth/refresh-token');
+      await axios.get('/api/auth/refresh-token');
 
       const res_again = await axios.delete(url);
       const data_again: TDeleteApiRes = res_again.data;
